@@ -26,3 +26,21 @@ export async function HandleGetFile(req, res){
         }
     });
 }
+
+/*Handles returning the 404 Page*/
+export async function HandleNotFound(req,res){
+    return new Promise(async (resolve, reject) => {
+        // expect the 404 page to exist, if anything fails reject
+        // Handle it over the default get file handler by changing the url
+        req.url = process.env.ERRORPAGE_RELATIVEPATH;
+        const success_message = await HandleGetFile(req, res).catch(
+            (err) => console.log(err)
+        )
+        if (success_message){
+            return resolve("Successfully got 404 page");
+        }
+        else{
+            return reject("Failed to get 404 page");
+        }
+    });
+}
