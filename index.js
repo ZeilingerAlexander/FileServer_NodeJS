@@ -2,7 +2,7 @@
 import { config } from "dotenv";
 import * as http from "http";
 import {StartServer} from "./server.js";
-import {LoadSpecialDirectories, SpecialDirectories} from "./variables/SpecialDirectories.js";
+import {LoadSpecialDirectories, AllowedDirectories} from "./variables/AllowedDirectories.js";
 import * as path from "path";
 
 // set env path

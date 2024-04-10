@@ -2,19 +2,20 @@ import {GetFullPathFromRelativePath} from "../InputValidator.js";
 import * as path from "path";
 
 /*Array of special Directory Paths that traversal validation will not be applied to*/
-export const SpecialDirectories = [];
+export const AllowedDirectories = [];
 
 /*Array of special Relative Directory Paths that traversal validation will not be applied to */
-const SpecialRelativeDirectories = [
-    "DirectoryNavigator"
+const AllowedRelativeDirectories = [
+    "DirectoryNavigator",
+    "static"
 ]
 
-/*Loads the Special Directories Array*/
+/*Loads the Allowed Directories Array from the Allowed Relative Directories Array*/
 export async function LoadSpecialDirectories(){
     return new Promise((resolve) => {
-        for (const i in SpecialRelativeDirectories) {
+        for (const i in AllowedRelativeDirectories) {
             // Add WorkingDir + path
-            SpecialDirectories.push(path.join(process.env.WORKING_DIRECTORY,SpecialRelativeDirectories[i]));
+            AllowedDirectories.push(path.join(process.env.WORKING_DIRECTORY,AllowedRelativeDirectories[i]));
         }
         return resolve("Finished Loading Special Directories");
     });

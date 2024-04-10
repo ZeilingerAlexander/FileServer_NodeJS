@@ -1,6 +1,6 @@
 import * as path from "path";
 import {promises as fsp} from "fs";
-import {SpecialDirectories} from "./variables/SpecialDirectories.js";
+import {AllowedDirectories} from "./variables/AllowedDirectories.js";
 
 // ...
 
@@ -11,6 +11,19 @@ export function GetFullPathFromRelativePath(relativePath){
     return path.join(process.env.STATIC_PATH.toString(), relativePath.toString());
 }
 
+/*Checks if the provided path is under one of the AllowedDirectories, if not path traversal was attempted and this returns false*/
+async function CheckIfPathIsAllowed(path){
+    return new Promise((resolve) => {
+        for (const i in AllowedDirectories) {
+            if (path.startsWith(AllowedDirectories[i])) {
+                return resolve(true);
+            }
+        }    
+        // none validated so path aint valid
+        return resolve(false);
+    });
+}
+
 /*checks if the provided relative path is a directory
 * rejects if path is invalid or traversal was attempted
 * resolves true if path points to a valid file, false if directory*/
@@ -19,8 +32,7 @@ export async function IsRelativePathFile(relativePath){
         const contentPath = GetFullPathFromRelativePath(relativePath);
 
         // check against path traversal
-        if (!contentPath.startsWith(process.env.STATIC_PATH)
-        && !SpecialDirectories.includes(contentPath)){
+        if (!await CheckIfPathIsAllowed(contentPath)){
             return reject("Path Traversal detected");
         }
         // check path existance
