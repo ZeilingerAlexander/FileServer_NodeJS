@@ -11,4 +11,5 @@ config ({path: "./.env"});
 console.log(process.env.STATIC_PATH);
 
 // start the server
-await StartServer();
+const serverMessage = await StartServer();
+console.log(serverMessage);
