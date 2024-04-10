@@ -2,6 +2,7 @@
 import * as http from "http";
 import {HandleGetQuery} from "./server_requestHandlers/QueryHandlers.js";
 import {GetFullValidatedPath, IsRelativePathFile} from "./InputValidator.js";
+import {HandleGetFile} from "./server_requestHandlers/FileHandlers.js";
 
 /*Starts the node server*/
 export async function StartServer (){
@@ -68,7 +69,15 @@ async function HandleGetContent(req,res){
             return reject("Path Validation Failed");
         }
         if (isFile){
-            
+            const complete_message = await HandleGetFile(req, res).catch(
+                (err) => console.log(err)
+            );
+            if (!complete_message){
+                return reject("Handling Getting File Failed");
+            }
+            else{
+                return resolve("Handling Getting File Completed ", complete_message);
+            }
         }
         else {
             

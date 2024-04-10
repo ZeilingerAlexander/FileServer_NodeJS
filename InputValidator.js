@@ -3,13 +3,18 @@ import {promises as fsp} from "fs";
 
 // ...
 
+/*Gets the full path for the provided relative path by combining the env static path with relative path,
+* THIS DOES NOT VALIDATE THE PATH*/
+export function GetFullPathFromRelativePath(relativePath){
+    return path.join(process.env.STATIC_PATH.toString(), relativePath.toString());
+}
+
 /*checks if the provided relative path is a directory
 * rejects if path is invalid or traversal was attempted
 * resolves true if path points to a valid file, false if directory*/
 export async function IsRelativePathFile(relativePath){
     return new Promise( async (resolve, reject) => {
-        const paths = [process.env.STATIC_PATH.toString(), relativePath.toString()];
-        const contentPath = path.join(...paths);
+        const contentPath = GetFullPathFromRelativePath(relativePath);
 
         if (!contentPath.startsWith(process.env.STATIC_PATH)){
             return reject("Path Traversal detected");
