@@ -1,7 +1,7 @@
 // the node server
 import * as http from "http";
 import {HandleGetQuery} from "./server_requestHandlers/QueryHandlers.js";
-import {GetFullValidatedPath} from "./InputValidator.js";
+import {GetFullValidatedPath, IsRelativePathFile} from "./InputValidator.js";
 
 /*Starts the node server*/
 export async function StartServer (){
@@ -44,15 +44,35 @@ async function on_ServerGetRequest(req,res){
         }
         else{
             // Request is a file/directory get request, so check the path
-            const validatedPath = await GetFullValidatedPath(req.url);
-            if (!validatedPath){
-                // Path validation failed, reject
-                return reject("Path validation failed");
+            // Request could also be something else but nothing is configured above
+            const complete_message = await HandleGetContent(req, res).catch(
+                (err) => console.log(err)
+            )
+            if (complete_message){
+                return resolve("Handling Get content completed ", complete_message);
+            }
+            else{
+                return reject("Handling Get content failed");
             }
         }
-        
     });
-    
-    
-    
+}
+
+/*Gets called on server content request, checks if client wants a file or folder then calles the appropiate handler*/
+async function HandleGetContent(req,res){
+    return new Promise( async (resolve, reject) => {
+        const isFile = await IsRelativePathFile(req.url).catch(
+            (err) => console.log(err)
+        );
+        if (isFile == null){
+            return reject("Path Validation Failed");
+        }
+        if (isFile){
+            
+        }
+        else {
+            
+        }
+    });
+
 }

@@ -1,22 +1,59 @@
-/*Gets the full validated path for the provided url, checks if it is valid (under static dir, and existing) then returns it,
- rejects if not found or path traversal detectd*/
-export async function GetFullValidatedPath(url){
+import * as path from "path";
+import {promises as fsp} from "fs";
+
+// ...
+
+/*checks if the provided relative path is a directory
+* rejects if path is invalid or traversal was attempted
+* resolves true if path points to a valid file, false if directory*/
+export async function IsRelativePathFile(relativePath){
+    return new Promise( async (resolve, reject) => {
+        const paths = [process.env.STATIC_PATH.toString(), relativePath.toString()];
+        const contentPath = path.join(...paths);
+
+        if (!contentPath.startsWith(process.env.STATIC_PATH)){
+            return reject("Path Traversal detected");
+        }
+        if (!CheckIFPathExists(contentPath)){
+            return reject("Path doesnt exist");
+        }
+        const isFile = await IsPathFile(contentPath).catch(
+            (err) => console.log(err)
+        )
+        if (isFile == null){
+            return reject("Failed to get File");
+        }
+        if (isFile){
+            return resolve(true);
+        }
+        else {
+            return resolve(false);
+        }
+    });
+}
+
+
+/*Checks if the provided path is a file, rejects if not found*/
+async function IsPathFile(path){
     return new Promise(async (resolve, reject) => {
-        // Get Full path
-        const paths = [process.env.STATIC_PATH.toString(), url.toString()];
-        const filePath = path.join(...paths);
-
-        // Validate path, and check against traversal
-        const pathTraversal = !filePath.startsWith(process.env.STATIC_PATH);
-        const exists = await CheckIFPathExists(filePath);
-
-        if (exists && !pathTraversal){
-            return resolve(filePath);
+        const fileStats = await fsp.lstat(path).catch((err) => console.log(err));
+        if (!fileStats){
+            return reject("failed to get filestats");
         }
-        else if (!exists){
-            return reject(`Path doesnt exist ${filePath}`);
+        return resolve(fileStats.isFile() ? true : false);
+    });
+}
+
+
+
+/*Checks if a given path is either a file or directory*/
+async function CheckIFPathExists(path){
+    return new Promise(async (resolve, reject) => {
+        const stats = await fsp.lstat(path).catch((err) => console.log(err));
+        if (!stats){return resolve(false);}
+        if (!stats.isFile() && !stats.isDirectory()){
+            return resolve(false);
         }
-        else{
-            return reject(`Path traversal detected ${filePath}`);        }
+        return  resolve(true);
     });
 }
