@@ -46,8 +46,12 @@ async function on_ServerGetRequest(req,res){
         else{
             // Request is a file/directory get request, so check the path
             // Request could also be something else but nothing is configured above
+            // On Request error return 404 Page
             const complete_message = await HandleGetContent(req, res).catch(
-                (err) => console.log(err)
+                async (err) => {
+                    console.log(err);
+                    await // TODO : FIXNIS
+                }
             )
             if (complete_message){
                 return resolve("Handling Get content completed ", complete_message);

@@ -70,7 +70,7 @@ async function IsPathFile(path){
 
 /*Checks if a given path is either a file or directory*/
 async function CheckIFPathExists(path){
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve) => {
         const stats = await fsp.lstat(path).catch((err) => console.log(err));
         if (!stats){return resolve(false);}
         if (!stats.isFile() && !stats.isDirectory()){
