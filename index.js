@@ -2,7 +2,7 @@
 import { config } from "dotenv";
 import * as http from "http";
 import {StartServer} from "./server.js";
-import {LoadSpecialDirectories} from "./variables/SpecialDirectories.js";
+import {LoadSpecialDirectories, SpecialDirectories} from "./variables/SpecialDirectories.js";
 
 // set env path
 config ({path: "./.env"});
@@ -14,7 +14,7 @@ console.log(process.env.WORKING_DIRECTORY);
 
 // Load Special Directories excluded from path traversal detection
 await LoadSpecialDirectories();
-
+console.log(SpecialDirectories);
 // start the server
 const serverMessage = await StartServer();
 console.log(serverMessage);

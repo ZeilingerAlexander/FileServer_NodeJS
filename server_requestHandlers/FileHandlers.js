@@ -11,7 +11,7 @@ export async function HandleGetFile(req, res){
         const contentPath = GetFullPathFromRelativePath(req.path);
         const contentExtension = path.extname(contentPath).substring(1).toLowerCase();
         const mimeType = MIME_TYPES[contentExtension] || MIME_TYPES.default;
-        const statusCode = path.basename(contentPath) === "404.html" ?? 404 || 200;
+        const statusCode = path.basename(contentPath) === "404.html" ? 404 : 200;
         
         // Write Result Head
         res.writeHead(statusCode, {"Content-Type" : mimeType});

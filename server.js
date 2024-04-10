@@ -1,7 +1,7 @@
 // the node server
 import * as http from "http";
 import {HandleGetQuery} from "./server_requestHandlers/QueryHandlers.js";
-import {GetFullValidatedPath, IsRelativePathFile} from "./InputValidator.js";
+import {IsRelativePathFile} from "./InputValidator.js";
 import {HandleGetFile} from "./server_requestHandlers/FileHandlers.js";
 
 /*Starts the node server*/

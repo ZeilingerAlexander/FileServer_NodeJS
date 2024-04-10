@@ -15,10 +15,6 @@ export async function LoadSpecialDirectories(){
         for (const i in SpecialRelativeDirectories) {
             // Add WorkingDir + path
             SpecialDirectories.push(path.join(process.env.WORKING_DIRECTORY,SpecialRelativeDirectories[i]));
-            
-            // Add Static Directory + .. + path (to allow path traversal)
-            SpecialDirectories.push(path.join(process.env.Static_Path,"..",SpecialRelativeDirectories[i]))
-        
         }
         return resolve("Finished Loading Special Directories");
     });
