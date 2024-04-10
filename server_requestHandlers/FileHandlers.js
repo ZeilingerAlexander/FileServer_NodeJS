@@ -8,7 +8,7 @@ import * as fs from "fs";
 /*Handles Getting the File for the Provided Request, DO NOT CALL WITH UNCHECKED INPUT, THIS WILL NOT VALIDATE INPUT FOR YOU*/
 export async function HandleGetFile(req, res){
     return new Promise(async (resolve,reject) => {
-        const contentPath = GetFullPathFromRelativePath(req.path);
+        const contentPath = GetFullPathFromRelativePath(req.url);
         const contentExtension = path.extname(contentPath).substring(1).toLowerCase();
         const mimeType = MIME_TYPES[contentExtension] || MIME_TYPES.default;
         const statusCode = path.basename(contentPath) === "404.html" ? 404 : 200;

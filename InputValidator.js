@@ -7,6 +7,7 @@ import {SpecialDirectories} from "./variables/SpecialDirectories.js";
 /*Gets the full path for the provided relative path by combining the env static path with relative path,
 * THIS DOES NOT VALIDATE THE PATH*/
 export function GetFullPathFromRelativePath(relativePath){
+    console.log(relativePath);
     return path.join(process.env.STATIC_PATH.toString(), relativePath.toString());
 }
 

@@ -10,7 +10,7 @@ export async function StartServer (){
         const server = http.createServer(on_ServerRequest);
         // start server
         server.listen(process.env.PORT);
-        resolve(`Successfully started server on port ${process.env.PORT}`);
+        resolve(`Successfully started server on  http://127.0.0.1:${process.env.PORT}/`);
     });
 }
 
@@ -21,7 +21,7 @@ async function on_ServerRequest(req, res){
         await on_ServerGetRequest(req, res).catch(
             (err) => console.log("Handling Server Get Request failed", err.message)
         ).then(
-            (msg) => console.log("Handling Server Get Request completed", msg.message)
+            (msg) => console.log("Handling Server Get Request completed", msg)
         );
         
     }
