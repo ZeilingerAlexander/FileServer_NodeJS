@@ -18,7 +18,7 @@ export async function StartServer (){
 async function on_ServerRequest(req, res){
     console.log(`Got Request ${req.method} ${req.url}`);
     if (req.method === "GET"){
-        const complete_message = await on_ServerGetRequest(req, res).catch(
+        await on_ServerGetRequest(req, res).catch(
             (err) => console.log("Handling Server Get Request failed", err.message)
         ).then(
             (msg) => console.log("Handling Server Get Request completed", msg.message)

@@ -1,5 +1,6 @@
 import * as path from "path";
 import {promises as fsp} from "fs";
+import {SpecialDirectories} from "./variables/SpecialDirectories.js";
 
 // ...
 
@@ -16,10 +17,11 @@ export async function IsRelativePathFile(relativePath){
     return new Promise( async (resolve, reject) => {
         const contentPath = GetFullPathFromRelativePath(relativePath);
 
-        if (!contentPath.startsWith(process.env.STATIC_PATH)){
+        if (!contentPath.startsWith(process.env.STATIC_PATH)
+        && !SpecialDirectories.includes(contentPath)){
             return reject("Path Traversal detected");
         }
-        if (!CheckIFPathExists(contentPath)){
+        if (!await CheckIFPathExists(contentPath)){
             return reject("Path doesnt exist");
         }
         const isFile = await IsPathFile(contentPath).catch(
