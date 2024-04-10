@@ -3,18 +3,18 @@ import { config } from "dotenv";
 import * as http from "http";
 import {StartServer} from "./server.js";
 import {LoadSpecialDirectories, SpecialDirectories} from "./variables/SpecialDirectories.js";
+import * as path from "path";
 
 // set env path
 config ({path: "./.env"});
 
-// set file directory path (static path)
-// TODO : Automaticly build it so its able to run under windows and linux (not hard coded)
-console.log(process.env.STATIC_PATH);
-console.log(process.env.WORKING_DIRECTORY);
+// set file directory paths
+process.env.WORKING_DIRECTORY = process.cwd();
+process.env.STATIC_PATH = path.join(process.env.WORKING_DIRECTORY, "/static");
 
 // Load Special Directories excluded from path traversal detection
 await LoadSpecialDirectories();
-console.log(SpecialDirectories);
+
 // start the server
 const serverMessage = await StartServer();
 console.log(serverMessage);
