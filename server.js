@@ -3,6 +3,7 @@ import * as http from "http";
 import {HandleGetQuery} from "./server_requestHandlers/QueryHandlers.js";
 import {IsRelativePathFile} from "./InputValidator.js";
 import {HandleGetFile, HandleNotFound} from "./server_requestHandlers/FileHandlers.js";
+import {HandleGetDirectoryNavigator} from "./server_requestHandlers/DirectoryHandlers.js";
 
 /*Starts the node server*/
 export async function StartServer (){
@@ -84,7 +85,15 @@ async function HandleGetContent(req,res){
             }
         }
         else {
-            
+            const complete_message = await HandleGetDirectoryNavigator(req, res).catch(
+                (err) => console.log(err)
+            )
+            if (!complete_message){
+                return reject("Handling Getting Directory Navigator failed");
+            }
+            else{
+                return resolve("Handling Getting Directory Navigator Completed ", complete_message);
+            }
         }
     });
 
