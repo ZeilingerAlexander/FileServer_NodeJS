@@ -11,7 +11,6 @@ config ({path: "./.env"});
 // configure some important paths
 process.env.WORKING_DIRECTORY = process.cwd();
 process.env.STATIC_PATH = path.join(process.env.WORKING_DIRECTORY, "/static");
-process.env.ERRORPAGE_RELATIVEPATH = "/404.html";
 
 // Load Special Directories excluded from path traversal detection
 await LoadSpecialDirectories();

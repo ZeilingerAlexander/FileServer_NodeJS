@@ -2,7 +2,7 @@
 import * as http from "http";
 import {HandleGetQuery} from "./server_requestHandlers/QueryHandlers.js";
 import {IsRelativePathFile} from "./InputValidator.js";
-import {HandleGetFile} from "./server_requestHandlers/FileHandlers.js";
+import {HandleGetFile, HandleNotFound} from "./server_requestHandlers/FileHandlers.js";
 
 /*Starts the node server*/
 export async function StartServer (){
@@ -50,7 +50,7 @@ async function on_ServerGetRequest(req,res){
             const complete_message = await HandleGetContent(req, res).catch(
                 async (err) => {
                     console.log(err);
-                    await // TODO : FIXNIS
+                    await HandleNotFound(req, res);
                 }
             )
             if (complete_message){
