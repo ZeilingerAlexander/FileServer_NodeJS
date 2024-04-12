@@ -5,6 +5,44 @@
     <title>Directory Navigator</title>
 </head>
 <body>
+<div style="display: flex; flex-direction: column" id="MainContainer">
 
+</div>
+
+
+<script>
+    console.log("loaded");
+    const MainContainerRef = document.getElementById("MainContainer");
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        const pathname = window.location.pathname;
+        const origin = window.location.origin;
+        const fullGetPath = origin + "/GET" + "/GetDirectoryStructure?val=" + pathname;
+
+        console.log(fullGetPath);
+
+        const response = await fetch(fullGetPath);
+        console.log(response);
+
+        if (response.status == 200){
+            let body = await response.json();
+            for (const i in body) {
+                const link = body[i];
+                const linkElement = document.createElement("a");
+                const fullPath = (origin.endsWith("/") || origin.endsWith("\\")) ? origin : (origin + "/") + pathname + "/" + link[0];
+                linkElement.textContent = (link[1] ? "Directory | " : " " )+ link[0];
+                linkElement.href = fullPath;
+
+                console.log(link);
+                console.log(fullPath);
+
+                MainContainerRef.appendChild(linkElement);
+            }
+        }
+        else {
+            document.body.textContent = "Bad Server Response, aborting...";
+        }
+    });
+</script>
 </body>
 </html>
