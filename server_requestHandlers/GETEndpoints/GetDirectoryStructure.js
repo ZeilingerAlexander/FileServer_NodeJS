@@ -1,7 +1,8 @@
 // /GET/GetDirectoryStructure
-import * as url from "node:url";
 import {GetUrlParameters} from "../../InputValidator.js";
 import {LogErrorMessage} from "../../logger.js";
+import fs from "node:fs";
+import { promises as fsp } from "node:fs";
 
 export async function HandleGetDirectoryStructure(req, res){
     return new Promise( async (resolve, reject) => {
@@ -20,9 +21,4 @@ export async function HandleGetDirectoryStructure(req, res){
         
         
     });
-}
-
-/*Gets the "var" property of the url provided if there is one*/
-async function GetDirectoryStructurePathFromUrlParameter(url){
-    
 }
