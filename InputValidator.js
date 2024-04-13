@@ -87,10 +87,29 @@ export async function GetUrlParameters(url){
         if (!url){
             return reject("url empty");
         }
-        const urlSearchParams = new URLSearchParams(url);
+        // Get url parameter part of the string
+        const urlParams = await GetUrlParametersStringFromUrl(url).catch(
+            (err) => LogErrorMessage(err.message, err));
+        if (!urlParams){
+            return reject("Failed to get url parameters");
+        }
+        
+        const urlSearchParams = new URLSearchParams(urlParams);
         if (!urlSearchParams || urlSearchParams.size === 0){
             return reject("url params empty");
         }
+        
         return resolve(Object.fromEntries(urlSearchParams.entries()));
+    });
+}
+
+/*Gets the url parameters string of the url (everything after the ? )*/
+async function GetUrlParametersStringFromUrl(url){
+    return new Promise(async (resolve, reject) => {
+        url = url.toString();
+        if (!url.includes("?")){
+            return reject("No Url applicable entry point found (?)");
+        }
+        return resolve(url.substring(url.indexOf("?"), url.length));
     });
 }
