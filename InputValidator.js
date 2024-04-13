@@ -80,3 +80,17 @@ async function CheckIFPathExists(path){
         return  resolve(true);
     });
 }
+
+/*Gets the url parameters for the provided url */
+export async function GetUrlParameters(url){
+    return new Promise( async (resolve, reject) => {
+        if (!url){
+            return reject("url empty");
+        }
+        const urlSearchParams = new URLSearchParams(url);
+        if (!urlSearchParams || urlSearchParams.size === 0){
+            return reject("url params empty");
+        }
+        return resolve(Object.fromEntries(urlSearchParams.entries()));
+    });
+}
