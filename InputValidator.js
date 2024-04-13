@@ -1,13 +1,14 @@
 import * as path from "path";
 import {promises as fsp} from "fs";
 import {AllowedDirectories} from "./variables/AllowedDirectories.js";
+import {LogDebugMessage, LogErrorMessage} from "./logger.js";
 
 // ...
 
 /*Gets the full path for the provided relative path by combining the env static path with relative path,
 * THIS DOES NOT VALIDATE THE PATH*/
 export function GetFullPathFromRelativePath(relativePath){
-    console.log(relativePath);
+    LogDebugMessage(relativePath);
     return path.join(process.env.STATIC_PATH.toString(), relativePath.toString());
 }
 
@@ -40,7 +41,7 @@ export async function IsRelativePathFile(relativePath){
             return reject("Path doesnt exist");
         }
         const isFile = await IsPathFile(contentPath).catch(
-            (err) => console.log(err)
+            async (err) => await LogErrorMessage(err.message, err)
         )
         if (isFile == null){
             return reject("Failed to get File");

@@ -2,6 +2,7 @@
 
 /*The Defined Get endpoints for the part after the /GET/*/
 import {HandleGetDirectoryStructure} from "./GETEndpoints/GetDirectoryStructure.js";
+import {LogErrorMessage} from "../logger.js";
 
 const GetEndpoints = {
     GetDirectoryStructure : HandleGetDirectoryStructure
@@ -17,7 +18,7 @@ export async function HandleGetQuery(req, res){
         }
         
         const success_message = await requestEndpoint(req, res).catch(
-            (err) => console.log(err)
+            async (err) => await LogErrorMessage(err.message,err)
         );
         if (!success_message){
             return reject("Request endpoint failed");

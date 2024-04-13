@@ -4,6 +4,7 @@ import {GetFullPathFromRelativePath} from "../InputValidator.js";
 import {MIME_TYPES} from "../variables/mimeTypes.js";
 import * as path from "path";
 import * as fs from "fs";
+import {LogErrorMessage} from "../logger.js";
 
 /*Handles Getting the File for the Provided Request, DO NOT CALL WITH UNCHECKED INPUT, THIS WILL NOT VALIDATE INPUT FOR YOU*/
 export async function HandleGetFile(req, res){
@@ -21,7 +22,7 @@ export async function HandleGetFile(req, res){
             fs.createReadStream(contentPath).pipe(res);
             return resolve("Piping File Stream was successful");
         } catch (ex) {
-            console.log(ex);
+            await LogErrorMessage(ex.message, ex);
             return reject("Piping File Stream failed ", ex.message);
         }
     });

@@ -4,6 +4,7 @@ import * as http from "http";
 import {StartServer} from "./server.js";
 import {LoadSpecialDirectories, AllowedDirectories} from "./variables/AllowedDirectories.js";
 import * as path from "path";
+import {LogDebugMessage} from "./logger.js";
 
 // set env path
 config ({path: "./.env"});
@@ -17,4 +18,4 @@ await LoadSpecialDirectories();
 
 // start the server
 const serverMessage = await StartServer();
-console.log(serverMessage);
+await LogDebugMessage(serverMessage)

@@ -4,6 +4,7 @@ import {HandleGetQuery} from "./server_requestHandlers/QueryHandlers.js";
 import {IsRelativePathFile} from "./InputValidator.js";
 import {HandleGetFile, HandleNotFound} from "./server_requestHandlers/FileHandlers.js";
 import {HandleGetDirectoryNavigator} from "./server_requestHandlers/DirectoryHandlers.js";
+import {LogDebugMessage, LogErrorMessage} from "./logger.js";
 
 /*Starts the node server*/
 export async function StartServer (){
@@ -17,12 +18,12 @@ export async function StartServer (){
 
 /*Gets called on any server request*/
 async function on_ServerRequest(req, res){
-    console.log(`Got Request ${req.method} ${req.url}`);
+    LogDebugMessage(`Got Request ${req.method} ${req.url}`);
     if (req.method === "GET"){
         await on_ServerGetRequest(req, res).catch(
-            (err) => console.log("Handling Server Get Request failed", err.message)
+            (err) => LogErrorMessage("Handling Server Get Request failed" + err.message, err)
         ).then(
-            (msg) => console.log("Handling Server Get Request completed", msg)
+            (msg) => LogDebugMessage("Handling Server Get Request completed " + msg)
         );
         
     }
@@ -35,7 +36,7 @@ async function on_ServerGetRequest(req,res){
         // Check if request is a non-file/folder request, just a normal query request
         if (req.url.startsWith("/GET/")){
             const complete_message = await HandleGetQuery(req, res).catch(
-                (err) => console.log(err)
+                (err) => LogErrorMessage(err.message, err)
             );
             if (complete_message){
                 return resolve("Handling Get query completed successfully", complete_message);
@@ -50,7 +51,7 @@ async function on_ServerGetRequest(req,res){
             // On Request error return 404 Page
             const complete_message = await HandleGetContent(req, res).catch(
                 async (err) => {
-                    console.log(err);
+                    await LogErrorMessage(err.message, err);
                     await HandleNotFound(req, res);
                 }
             )
@@ -68,14 +69,14 @@ async function on_ServerGetRequest(req,res){
 async function HandleGetContent(req,res){
     return new Promise( async (resolve, reject) => {
         const isFile = await IsRelativePathFile(req.url).catch(
-            (err) => console.log(err)
+            (err) => LogErrorMessage(err.message, err)
         );
         if (isFile == null){
             return reject("Path Validation Failed");
         }
         if (isFile){
             const complete_message = await HandleGetFile(req, res).catch(
-                (err) => console.log(err)
+                (err) => LogErrorMessage(err.message, err)
             );
             if (!complete_message){
                 return reject("Handling Getting File Failed");
@@ -86,7 +87,7 @@ async function HandleGetContent(req,res){
         }
         else {
             const complete_message = await HandleGetDirectoryNavigator(req, res).catch(
-                (err) => console.log(err)
+                (err) => LogErrorMessage(err.message, err)
             )
             if (!complete_message){
                 return reject("Handling Getting Directory Navigator failed");
