@@ -10,3 +10,4 @@ export async function HandleAuthorizationOnPost(req,res){
 
 // TODO : Acutall implement a db strucutre for this
 // TODO : automaticly expire old cookies for that user if a new login is detected
+// TODO : add logout functionality to also expire token
