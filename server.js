@@ -28,6 +28,7 @@ async function on_ServerRequest(req, res){
     if (!authorization_success_message){
         return;
     }
+    await LogDebugMessage(authorization_success_message);
     
     // Handle A Query Request if the request is a query request, example : /POST/ /GET/
     if (IsRequestQueryRequest(req)){
