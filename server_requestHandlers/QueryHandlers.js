@@ -3,16 +3,18 @@
 /*The Defined Get endpoints for the part after the /GET/*/
 import {HandleGetDirectoryStructure} from "./GETEndpoints/GetDirectoryStructure.js";
 import {LogErrorMessage} from "../logger.js";
+import {HandleAuthorizationOnPost} from "../Authorization/auth.js";
 
-const GetEndpoints = {
-    GetDirectoryStructure : HandleGetDirectoryStructure
+const QueryEndpoints = {
+    GetDirectoryStructure : HandleGetDirectoryStructure,
+    PostAuthorization : HandleAuthorizationOnPost
 }
 
-/*Handles a /GET/ query, returns 404 if not found*/
-export async function HandleGetQuery(req, res){
+/*Handles a /GET/ or /POST/ query, returns 404 if not found*/
+export async function HandleQuery(req, res){
     return new Promise(async (resolve, reject) => {
         const requestEndpointString = await GetRequestRawURL(req.url);
-        const requestEndpoint = GetEndpoints[requestEndpointString] || undefined;
+        const requestEndpoint = QueryEndpoints[requestEndpointString] || undefined;
         if (!requestEndpoint){
             return reject("No Request endpoint found");
         }
@@ -27,16 +29,23 @@ export async function HandleGetQuery(req, res){
     });
 }
 
-/*Returns the Part of the get request after /GET/ and before the paramaters
+/*Returns the Part of the get request after /GET/ or /POST/ and before the paramaters
 * example : /GET/getendpoint?params=1234 --RETURNS--> getendpoint*/
 export async function GetRequestRawURL(url){
     return new Promise( async (resolve, reject) => {
         url = url.toString();
-        if (!url.startsWith("/GET/")){
+        let rawURL = "";
+        if (url.startsWith("/GET/")){
+            rawURL =  url.substring(5, url.length);
+        }
+        else if (url.startsWith("/POST/")){
+            rawURL =  url.substring(6, url.length);
+        }
+        else{
             return reject("Bad URL provided");
         }
-        const rawGetUrl = url.substring(5, url.length);
-        const rawGetUrlWithoutParams = await GetURLWithoutParams(rawGetUrl);
+       
+        const rawGetUrlWithoutParams = await GetURLWithoutParams(rawURL);
         return resolve(rawGetUrlWithoutParams);
     });
 }
