@@ -7,3 +7,6 @@ export async function HandleAuthorizationOnPost(req,res){
         resolve("test-ignore");
     });
 }
+
+// TODO : Acutall implement a db strucutre for this
+// TODO : automaticly expire old cookies for that user if a new login is detected
