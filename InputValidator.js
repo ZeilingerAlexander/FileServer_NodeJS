@@ -6,14 +6,15 @@ import {LogDebugMessage, LogErrorMessage} from "./logger.js";
 // ...
 
 /*Gets the full path for the provided relative path by combining the env static path with relative path,
-* THIS DOES NOT VALIDATE THE PATH*/
+* THIS DOES NOT VALIDATE THE PATH
+* Make sure to check against path traversal since when combining pathx with ../../ it goes outsize*/
 export function GetFullPathFromRelativePath(relativePath){
     LogDebugMessage(relativePath);
     return path.join(process.env.STATIC_PATH.toString(), relativePath.toString());
 }
 
 /*Checks if the provided path is under one of the AllowedDirectories, if not path traversal was attempted and this returns false*/
-async function CheckIfPathIsAllowed(path){
+export async function CheckIfPathIsAllowed(path){
     return new Promise((resolve) => {
         for (const i in AllowedDirectories) {
             if (path.startsWith(AllowedDirectories[i])) {
@@ -59,18 +60,27 @@ export async function IsRelativePathFile(relativePath){
 /*Checks if the provided path is a file, rejects if not found*/
 async function IsPathFile(path){
     return new Promise(async (resolve, reject) => {
-        const fileStats = await fsp.lstat(path).catch((err) => console.log(err));
+        const fileStats = await fsp.lstat(path).catch((err) => LogErrorMessage(err.message,err));
         if (!fileStats){
             return reject("failed to get filestats");
         }
-        return resolve(fileStats.isFile() ? true : false);
+        return resolve(fileStats.isFile());
     });
 }
 
-
+/*Check if the provided path is a directory, rejects if not found*/
+export async function IsPathDirectory(path){
+    return new Promise(async (resolve,reject) => {
+        const fileStats = await fsp.lstat(path).catch((err) => LogErrorMessage(err.message,err));
+        if (!fileStats){
+            return reject("failed to get filestats");
+        }
+        return resolve(fileStats.isDirectory());
+    });
+}
 
 /*Checks if a given path is either a file or directory*/
-async function CheckIFPathExists(path){
+export async function CheckIFPathExists(path){
     return new Promise(async (resolve) => {
         const stats = await fsp.lstat(path).catch((err) => console.log(err));
         if (!stats){return resolve(false);}
