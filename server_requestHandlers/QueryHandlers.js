@@ -1,21 +1,29 @@
 // Handlers for queries (not files/dirs)
 
-/*The Defined Get endpoints for the part after the /GET/*/
 import {HandleGetDirectoryStructure} from "./GETEndpoints/GetDirectoryStructure.js";
 import {LogErrorMessage} from "../logger.js";
 import {HandleAuthorizationOnPost} from "../Authorization/auth.js";
+import {HandleNotFound} from "./FileHandlers.js";
 
+/*The Allowed Query Url entry points, example : /GET/ /POST/, ...*/
+const ValidQueryUrlEntryPoints = [
+    "/GET/",
+    "/POST/"
+]
+
+/*The Defined endpoints for query requests -> example : /GET/...*/
 const QueryEndpoints = {
     GetDirectoryStructure : HandleGetDirectoryStructure,
     PostAuthorization : HandleAuthorizationOnPost
 }
 
-/*Handles a /GET/ or /POST/ query, returns 404 if not found*/
+/*Handles a Query endpoint defined under QueryEndpoints, returns 404 if not found*/
 export async function HandleQuery(req, res){
     return new Promise(async (resolve, reject) => {
-        const requestEndpointString = await GetRequestRawURL(req.url);
+        const requestEndpointString = await GetQueryRequestRawURL(req.url);
         const requestEndpoint = QueryEndpoints[requestEndpointString] || undefined;
         if (!requestEndpoint){
+            await HandleNotFound(req, res);
             return reject("No Request endpoint found");
         }
         
@@ -29,24 +37,22 @@ export async function HandleQuery(req, res){
     });
 }
 
-/*Returns the Part of the get request after /GET/ or /POST/ and before the paramaters
-* example : /GET/getendpoint?params=1234 --RETURNS--> getendpoint*/
-export async function GetRequestRawURL(url){
+/*Returns the Part of the request after the query entry point and before the paramaters
+* example : /GET/getendpoint?params=1234 --RETURNS--> getendpoint
+* DO NOT call this on unchecked input since it will stripe url beginning from first / and to second /*/
+export async function GetQueryRequestRawURL(url){
     return new Promise( async (resolve, reject) => {
         url = url.toString();
-        let rawURL = "";
-        if (url.startsWith("/GET/")){
-            rawURL =  url.substring(5, url.length);
-        }
-        else if (url.startsWith("/POST/")){
-            rawURL =  url.substring(6, url.length);
-        }
-        else{
+        // Remove everything from the first / to the second / -> example : /POST/query ... query
+        url = url.substring(1,url.length);
+        const escapePos= url.indexOf("/");
+        if (escapePos == -1 || escapePos == url.length-1){
             return reject("Bad URL provided");
         }
+        url = url.substring(escapePos+1, url.length);
        
-        const rawGetUrlWithoutParams = await GetURLWithoutParams(rawURL);
-        return resolve(rawGetUrlWithoutParams);
+        const ParsedURlWithoutParams = await GetURLWithoutParams(url);
+        return resolve(ParsedURlWithoutParams);
     });
 }
 
@@ -64,4 +70,16 @@ async function GetURLWithoutParams(url){
             return resolve(url);
         }
     });
+}
+
+
+
+/*Checks if the provided request is a query request, returns true if so, returns false if not*/
+export function IsRequestQueryRequest(req){
+    for (const reqKey in ValidQueryUrlEntryPoints) {
+        if (req.url.toString().startsWith(ValidQueryUrlEntryPoints[reqKey])){
+            return true;
+        }
+    }
+    return false;
 }

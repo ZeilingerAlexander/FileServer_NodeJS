@@ -1,6 +1,6 @@
 // the node server
 import * as http from "http";
-import {HandleQuery} from "./server_requestHandlers/QueryHandlers.js";
+import {HandleQuery, IsRequestQueryRequest} from "./server_requestHandlers/QueryHandlers.js";
 import {IsRelativePathFile} from "./InputValidator.js";
 import {HandleGetFile, HandleNotFound} from "./server_requestHandlers/FileHandlers.js";
 import {HandleGetDirectoryNavigator} from "./server_requestHandlers/DirectoryHandlers.js";
@@ -29,17 +29,18 @@ async function on_ServerRequest(req, res){
         return;
     }
     
-    // Handle A Query Request on /GET/, /POST/, etc
-    if (req.url.startsWith("/GET/") || req.url.startsWith("/POST/")){
-            const complete_message = await HandleQuery(req, res).catch(
-                (err) => LogErrorMessage(err.message, err)
-            );
-            if (complete_message){
-                return resolve("Handling query completed successfully", complete_message);
-            }
-            else{
-                return reject("Handling query failed");
-            }
+    // Handle A Query Request if the request is a query request, example : /POST/ /GET/
+    if (IsRequestQueryRequest(req)){
+        const complete_message = await HandleQuery(req, res).catch(
+            (err) => LogErrorMessage(err.message, err)
+        );
+        if (complete_message){
+            LogDebugMessage("Handling query completed successfully " + complete_message);
+        }
+        else{
+            LogErrorMessage("Handling query failed");
+        }
+        return;
     }
     
     if (req.method === "GET"){
