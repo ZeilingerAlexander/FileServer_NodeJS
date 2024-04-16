@@ -19,7 +19,7 @@ process.env.STATIC_PATH = path.join(process.env.WORKING_DIRECTORY, "/static");
 await LoadSpecialDirectories();
 
 // Generate Sensitive Information
-GenerateSensitiveInformation();
+GenerateSensitiveInformation(process.env);
 
 // start the server
 const serverMessage = await StartServer();
