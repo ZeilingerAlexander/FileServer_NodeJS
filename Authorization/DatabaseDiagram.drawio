@@ -1,6 +1,6 @@
-<mxfile host="Electron" modified="2024-04-15T15:00:47.934Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.3.7 Chrome/112.0.5615.204 Electron/24.5.0 Safari/537.36" etag="0Q-TcF0PkK-1OtquYYTH" version="21.3.7" type="device">
+<mxfile host="Electron" modified="2024-04-16T05:56:08.425Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.3.7 Chrome/112.0.5615.204 Electron/24.5.0 Safari/537.36" etag="lPgB4GV4r7xY69LtdZpt" version="21.3.7" type="device">
   <diagram name="Page-1" id="KxiMXlsNdQkw01ZYBWxt">
-    <mxGraphModel dx="1773" dy="1025" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1418" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -59,7 +59,7 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="Ontk7vjWD-6n_7XR-B6x-21" value="AccessLog" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="460" y="150" width="160" height="210" as="geometry" />
+          <mxGeometry x="460" y="150" width="160" height="240" as="geometry" />
         </mxCell>
         <mxCell id="Ontk7vjWD-6n_7XR-B6x-22" value="id" style="text;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="Ontk7vjWD-6n_7XR-B6x-21" vertex="1">
           <mxGeometry y="30" width="160" height="30" as="geometry" />
@@ -70,14 +70,17 @@
         <mxCell id="Ontk7vjWD-6n_7XR-B6x-36" value="message" style="text;strokeColor=#666666;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontColor=#333333;" parent="Ontk7vjWD-6n_7XR-B6x-21" vertex="1">
           <mxGeometry y="90" width="160" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="Ontk7vjWD-6n_7XR-B6x-32" value="user" style="text;strokeColor=#0e8088;fillColor=#b0e3e6;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="Ontk7vjWD-6n_7XR-B6x-21" vertex="1">
+        <mxCell id="z6DRPAj7RePSow2X0bur-1" value="ip" style="text;strokeColor=#56517e;fillColor=#d0cee2;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="Ontk7vjWD-6n_7XR-B6x-21">
           <mxGeometry y="120" width="160" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="Ontk7vjWD-6n_7XR-B6x-34" value="accessToken" style="text;strokeColor=#0e8088;fillColor=#b0e3e6;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="Ontk7vjWD-6n_7XR-B6x-21" vertex="1">
+        <mxCell id="Ontk7vjWD-6n_7XR-B6x-32" value="user" style="text;strokeColor=#0e8088;fillColor=#b0e3e6;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="Ontk7vjWD-6n_7XR-B6x-21" vertex="1">
           <mxGeometry y="150" width="160" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="Ontk7vjWD-6n_7XR-B6x-24" value="accessType" style="text;strokeColor=#0e8088;fillColor=#b0e3e6;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="Ontk7vjWD-6n_7XR-B6x-21" vertex="1">
+        <mxCell id="Ontk7vjWD-6n_7XR-B6x-34" value="accessToken" style="text;strokeColor=#0e8088;fillColor=#b0e3e6;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="Ontk7vjWD-6n_7XR-B6x-21" vertex="1">
           <mxGeometry y="180" width="160" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Ontk7vjWD-6n_7XR-B6x-24" value="accessType" style="text;strokeColor=#0e8088;fillColor=#b0e3e6;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="Ontk7vjWD-6n_7XR-B6x-21" vertex="1">
+          <mxGeometry y="210" width="160" height="30" as="geometry" />
         </mxCell>
         <mxCell id="Ontk7vjWD-6n_7XR-B6x-25" value="AccessType" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="701" y="300" width="160" height="90" as="geometry" />
@@ -102,6 +105,9 @@
         </mxCell>
         <mxCell id="Ontk7vjWD-6n_7XR-B6x-37" value="Foreign Key int N" style="text;html=1;strokeColor=#0e8088;fillColor=#b0e3e6;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="240" y="60" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="z6DRPAj7RePSow2X0bur-2" value="varchar(50) N" style="text;html=1;strokeColor=#56517e;fillColor=#d0cee2;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="120" y="60" width="120" height="30" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
