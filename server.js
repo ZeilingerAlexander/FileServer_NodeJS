@@ -21,14 +21,20 @@ export async function StartServer (){
 async function on_ServerRequest(req, res){
     LogDebugMessage(`Got Request ${req.method} ${req.url}`);
     
+    // TODO : ADD RATE LIMITING OVER IP ADDRESS
+    
     // Handle authentication, return if authentication fails
     const authorization_success_message = await HandleAuthorizationOnRequest(req, res).catch(
         (err) => LogErrorMessage("Authorization failed",err)
     );
     if (!authorization_success_message){
+        // TODO : ADD RETURNING UNAUTHORIZED PAGE
         return;
     }
     await LogDebugMessage(authorization_success_message);
+    
+    // TODO : ADD RATE LIMITING OVER USER ID
+    // TODO : ADD SOME SORT OF MAX PACKAGE SIZE
     
     // Handle A Query Request if the request is a query request, example : /POST/ /GET/
     if (IsRequestQueryRequest(req)){

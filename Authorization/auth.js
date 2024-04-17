@@ -18,7 +18,7 @@ export async function HandleAuthorizationOnRequest(req, res){
         if (IsRequestQueryRequest(req) && AllowedUnauthorizedQueryEndpoints.includes(await GetQueryRequestRawURL(req.url))){
             return resolve("Authorization not needed for this request, skipping...");
         }
-        
+        // TODO : IMPLEMENT CHECK IF AUTHORIZATION TOKEN IS VALID
         return resolve("NOT IMPLEMENTED");
     });
 }
