@@ -2,6 +2,7 @@ import * as path from "path";
 import {promises as fsp} from "fs";
 import {AllowedDirectories} from "./variables/AllowedDirectories.js";
 import {LogDebugMessage, LogErrorMessage} from "./logger.js";
+import * as bcrypt from "bcrypt";
 
 // ...
 
@@ -129,6 +130,22 @@ export async function GetRequestBody(req){
             body = JSON.parse(body);
             return resolve(body);
         });
+    });
+}
+
+/*Returns the Hash for the provided password*/
+export async function GetPasswordHash(password){
+    return new Promise(async (resolve, reject) => {
+        if (!password){return reject("password empty");}
+        return resolve(await bcrypt.hash(password,10));
+    });
+}
+
+/*Returns true if the password matches the provided hash*/
+export async function DoesPasswordMatchHash(password,hash){
+    return new Promise(async (resolve,reject) => {
+        if (!password||!hash){return reject("password or hash empty");}
+        return resolve(await bcrypt.compare(password,hash));
     });
 }
 
