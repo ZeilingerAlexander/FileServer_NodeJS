@@ -24,3 +24,21 @@ export async function CreateDbContext(env){
         return resolve("Successfully created mysql connection");
     });
 }
+
+/*Checks if the provided login info is a valid entry in the database (password is hashed)*/
+export async function IsLoginValid(username, passwordHash){
+    return new Promise(async (resolve,reject) => {
+        if (!username || !passwordHash){
+            return reject("username or password was empty");
+        }
+        
+        const exampleLogonuser = "test";
+        const exampleLogonpass = "pass";
+        
+        const query = `SELECT id FROM authentication.user WHERE name = ? AND passkey = ? LIMIT 1`
+        const row = await dbcontext.promise().query(query, [exampleLogonuser,exampleLogonpass]);
+        const data = row[0];
+        
+        return resolve(data.length > 0);
+    });
+}

@@ -141,14 +141,6 @@ export async function GetPasswordHash(password){
     });
 }
 
-/*Returns true if the password matches the provided hash*/
-export async function DoesPasswordMatchHash(password,hash){
-    return new Promise(async (resolve,reject) => {
-        if (!password||!hash){return reject("password or hash empty");}
-        return resolve(await bcrypt.compare(password,hash));
-    });
-}
-
 /*Gets the url parameters string of the url (everything after the ? )*/
 async function GetUrlParametersStringFromUrl(url){
     return new Promise(async (resolve, reject) => {

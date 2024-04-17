@@ -1,6 +1,9 @@
 
 /*Allowed Query endpoints that can be accessed by unauthorized users*/
 import {GetQueryRequestRawURL, IsRequestQueryRequest} from "../server_requestHandlers/QueryHandlers.js";
+import {GetPasswordHash, GetRequestBody, GetUrlParameters} from "../InputValidator.js";
+import {LogDebugMessage, LogErrorMessage} from "../logger.js";
+import {IsLoginValid} from "../Database/db.js";
 
 const AllowedUnauthorizedQueryEndpoints = [
     "PostAuthorization"
@@ -15,7 +18,7 @@ export async function HandleAuthorizationOnRequest(req, res){
         if (IsRequestQueryRequest(req) && AllowedUnauthorizedQueryEndpoints.includes(await GetQueryRequestRawURL(req.url))){
             return resolve("Authorization not needed for this request, skipping...");
         }
-        console.log(req.headers);
+        
         return resolve("NOT IMPLEMENTED");
     });
 }
@@ -24,12 +27,38 @@ export async function HandleAuthorizationOnRequest(req, res){
 /*Handles the authorization post request, returns reject on invalid credentials*/
 export async function HandleAuthorizationLoginOnPost(req,res){
     return new Promise(async (resolve,reject) => {
+        const body = await GetRequestBody(req);
+        if (!body || !body.password || !body.username){
+            return reject("Failed to get password or username from body");
+        }
+        
+        const name = body.username;
+        const passwordHash = await GetPasswordHash(body.password).catch((err) => LogErrorMessage(err.message,err));
+        if (!passwordHash){
+            return reject("Failed to get password hash");
+        }
+        
+        const loginValid = await IsLoginValid(name, passwordHash).catch((err) => LogErrorMessage(err.message,err));
+        if (loginValid === undefined){
+            return reject("Failed to validate login");
+        }
+        if (!loginValid){
+            return reject("Bad Login Info");
+        }
+        
+        // login is valid
+        LogDebugMessage("User Login Valid, generating auth token...");
+        
+        // TODO : Add generating user authentication token and expiring the old one
+        
+        
         res.writeHead(200, {"Set-Cookie" : "Authorization=test; SameSite=Lax;Path=/"});
         res.end();
         resolve("test-ignore");
     });
 }
 
-// TODO : Acutall implement a db strucutre for this
-// TODO : automaticly expire old cookies for that user if a new login is detected
-// TODO : add logout functionality to also expire token
+/*Logs the user with the given id out of all if any active sessions by invalidatiing the tokens he owns*/
+export async function LogoutUser(userid){
+    // TODO : Implement
+}
