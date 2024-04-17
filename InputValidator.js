@@ -96,7 +96,8 @@ export async function GetUrlParameters(url){
     return new Promise( async (resolve, reject) => {
         if (!url){
             return reject("url empty");
-        }
+    
+    }
         // Get url parameter part of the string
         const urlParams = await GetUrlParametersStringFromUrl(url).catch(
             (err) => LogErrorMessage(err.message, err));
@@ -110,6 +111,24 @@ export async function GetUrlParameters(url){
         }
         
         return resolve(Object.fromEntries(urlSearchParams.entries()));
+    });
+}
+
+/*Waits for the request body, resolves with the body*/
+export async function GetRequestBody(req){
+    return new Promise(async (resolve,reject) => {
+        if (!req){
+            return reject("body empty");
+        }
+        let body = "";
+        req.setEncoding("utf8");
+        req.on("data", data => {
+            body += data;
+        });
+        req.on("end", () => {
+            body = JSON.parse(body);
+            return resolve(body);
+        });
     });
 }
 
