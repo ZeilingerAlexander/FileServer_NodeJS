@@ -6,12 +6,12 @@ import {LoadSpecialDirectories, AllowedDirectories} from "./variables/AllowedDir
 import * as path from "path";
 import {LogDebugMessage} from "./logger.js";
 import {GenerateSensitiveInformation} from "./GenerateSensitiveInformation.js";
+import {CreateDbContext} from "./Database/db.js";
 
 // set env path
 config ({path: "./.env"});
 
 // configure some important paths
-
 process.env.WORKING_DIRECTORY = process.cwd();
 process.env.STATIC_PATH = path.join(process.env.WORKING_DIRECTORY, "/static");
 
@@ -20,6 +20,9 @@ await LoadSpecialDirectories();
 
 // Generate Sensitive Information
 process.env = GenerateSensitiveInformation(process.env);
+
+// connect to mysql server, if it fails it rejects and program exists :)
+await CreateDbContext(process.env);
 
 // start the server
 const serverMessage = await StartServer();
