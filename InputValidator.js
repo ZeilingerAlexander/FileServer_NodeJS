@@ -165,9 +165,16 @@ export async function GenerateNewAccesToken(){
         while (key.length < 250){
             key += key;
         }
-        
-        
-        
         return resolve(key.substring(0,250));
+    });
+}
+
+/*Checks if the provided password hashes match, this is not an equals operation due to salting, rejects on empty input*/
+export async function DoPasswordHashesMatch(hash1,hash2){
+    return new Promise (async (resolve,reject) => {
+        if (!hash1 || !hash2){
+            return reject("hash1 and hash2 cant be empty")}
+        
+        return resolve(await bcrypt.compare(hash1, hash2));
     });
 }
