@@ -30,7 +30,7 @@ export async function CreateDbContext(env){
 /*Checks if the provided login info is a valid entry in the database (password is hashed)
 * resolves with the user id if successful, RESOLVES(not rejects) with undefined if empty, 
 * only rejects if username or password empty*/
-export async function IsLoginValid(username, passwordHash){
+export async function ValidateLogin(username, passwordHash){
     return new Promise(async (resolve,reject) => {
         if (!username || !passwordHash){
             return reject("username or password was empty");

@@ -3,7 +3,7 @@
 import {GetQueryRequestRawURL, IsRequestQueryRequest} from "../server_requestHandlers/QueryHandlers.js";
 import {GetPasswordHash, GetRequestBody, GetUrlParameters} from "../InputValidator.js";
 import {LogDebugMessage, LogErrorMessage} from "../logger.js";
-import {ExpireAllAuthenticationTokensForUser, GenerateAuthenticationToken, IsLoginValid} from "../Database/db.js";
+import {ExpireAllAuthenticationTokensForUser, GenerateAuthenticationToken, ValidateLogin} from "../Database/db.js";
 
 const AllowedUnauthorizedQueryEndpoints = [
     "PostAuthorization"
@@ -34,7 +34,7 @@ export async function HandleAuthorizationLoginOnPost(req,res){
         const passwordHash = await GetPasswordHash(body.password).catch((err) => LogErrorMessage(err.message,err));
         if (!passwordHash){return reject("Failed to get password hash");}
         
-        const userID = await IsLoginValid(name, passwordHash).catch((err) => LogErrorMessage(err.message,err));
+        const userID = await ValidateLogin(name, passwordHash).catch((err) => LogErrorMessage(err.message,err));
         if (!userID){return reject("Bad Login Info");}
         
         // login is valid, expire old ones and generate a new one
