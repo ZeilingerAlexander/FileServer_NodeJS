@@ -157,7 +157,17 @@ export async function GenerateNewAccesToken(){
     return new Promise (async (resolve,reject) => {
         let a = new Uint8Array(250);
         crypto.getRandomValues(a);
-        const key = btoa(String.fromCharCode.apply(null, a));
-        return resolve(key);
+        let key = btoa(String.fromCharCode.apply(null, a));
+        
+        // add random value to ensure it not being empty resulting in infiinite loop below
+        key += "_$sd";
+        
+        while (key.length < 250){
+            key += key;
+        }
+        
+        
+        
+        return resolve(key.substring(0,250));
     });
 }
