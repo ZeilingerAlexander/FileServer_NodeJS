@@ -1,6 +1,7 @@
 import * as mysql from "mysql2";
 import {LogDebugMessage, LogErrorMessage} from "../logger.js";
 import {LogCreateAuthToken} from "./dblogger.js";
+import {GenerateNewAccesToken} from "../InputValidator.js";
 
 let dbcontext;
 
@@ -55,7 +56,17 @@ export async function IsLoginValid(username, passwordHash){
 * resolves with the token if successful*/
 export async function GenerateAuthenticationToken(userid){
     return new Promise(async (resolve,reject) => {
-        // TODO : implement
+        if (!userid){ return reject("userid cant be empty");}
+        
+        const token = await GenerateNewAccesToken();
+        
+        // insert token into db
+        const query = "INSERT INTO authentication.accesstoken (token, expired, user) " +
+            "VALUES (?,?,?)";
+        const complete_message = await dbcontext.promise().query(query, [token, false, userid]).catch((err) => LogErrorMessage(err.message, err));
+        if (!complete_message){return reject("Failed to insert auth token into db");}
+        
+        return resolve(token);
     });
 }
 
