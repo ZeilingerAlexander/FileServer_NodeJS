@@ -3,7 +3,7 @@
 import {GetQueryRequestRawURL, IsRequestQueryRequest} from "../server_requestHandlers/QueryHandlers.js";
 import {GetPasswordHash, GetRequestBody, GetUrlParameters} from "../InputValidator.js";
 import {LogDebugMessage, LogErrorMessage} from "../logger.js";
-import {IsLoginValid} from "../Database/db.js";
+import {ExpireAllAuthenticationTokensForUser, GenerateAuthenticationToken, IsLoginValid} from "../Database/db.js";
 
 const AllowedUnauthorizedQueryEndpoints = [
     "PostAuthorization"
@@ -28,31 +28,21 @@ export async function HandleAuthorizationOnRequest(req, res){
 export async function HandleAuthorizationLoginOnPost(req,res){
     return new Promise(async (resolve,reject) => {
         const body = await GetRequestBody(req);
-        if (!body || !body.password || !body.username){
-            return reject("Failed to get password or username from body");
-        }
+        if (!body || !body.password || !body.username){return reject("Failed to get password or username from body");}
         
         const name = body.username;
         const passwordHash = await GetPasswordHash(body.password).catch((err) => LogErrorMessage(err.message,err));
-        if (!passwordHash){
-            return reject("Failed to get password hash");
-        }
+        if (!passwordHash){return reject("Failed to get password hash");}
         
-        const loginValid = await IsLoginValid(name, passwordHash).catch((err) => LogErrorMessage(err.message,err));
-        if (loginValid === undefined){
-            return reject("Failed to validate login");
-        }
-        if (!loginValid){
-            return reject("Bad Login Info");
-        }
+        const userID = await IsLoginValid(name, passwordHash).catch((err) => LogErrorMessage(err.message,err));
+        if (!userID){return reject("Bad Login Info");}
         
-        // login is valid
-        LogDebugMessage("User Login Valid, generating auth token...");
+        // login is valid, expire old ones and generate a new one
+        await ExpireAllAuthenticationTokensForUser(userID);
+        const authToken = await GenerateAuthenticationToken(userID).catch((err) => LogErrorMessage(err.message,err));
+        if (!authToken){return reject("Failed to generate auth token");}
         
-        // TODO : Add generating user authentication token and expiring the old one
-        
-        
-        res.writeHead(200, {"Set-Cookie" : "Authorization=test; SameSite=Lax;Path=/"});
+        res.writeHead(200, {"Set-Cookie" : `Authorization=${authToken}; SameSite=Lax;Path=/`});
         res.end();
         resolve("test-ignore");
     });
