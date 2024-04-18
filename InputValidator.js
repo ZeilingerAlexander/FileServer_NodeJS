@@ -151,3 +151,13 @@ async function GetUrlParametersStringFromUrl(url){
         return resolve(url.substring(url.indexOf("?"), url.length));
     });
 }
+
+/*Returns a usable acces token*/
+export async function GenerateNewAccesToken(){
+    return new Promise (async (resolve,reject) => {
+        let a = new Uint8Array(250);
+        crypto.getRandomValues(a);
+        const key = btoa(String.fromCharCode.apply(null, a));
+        return resolve(key);
+    });
+}
