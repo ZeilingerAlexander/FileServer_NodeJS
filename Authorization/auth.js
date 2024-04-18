@@ -30,11 +30,9 @@ export async function HandleAuthorizationLoginOnPost(req,res){
         const body = await GetRequestBody(req);
         if (!body || !body.password || !body.username){return reject("Failed to get password or username from body");}
         
+        // validate login
         const name = body.username;
-        const passwordHash = await GetPasswordHash(body.password).catch((err) => LogErrorMessage(err.message,err));
-        if (!passwordHash){return reject("Failed to get password hash");}
-        
-        const userID = await ValidateLogin(name, passwordHash).catch((err) => LogErrorMessage(err.message,err));
+        const userID = await ValidateLogin(name, body.password).catch((err) => LogErrorMessage(err.message,err));
         if (!userID){return reject("Bad Login Info");}
         
         // login is valid, expire old ones and generate a new one

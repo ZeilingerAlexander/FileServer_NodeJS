@@ -1,7 +1,7 @@
 import * as mysql from "mysql2";
 import {LogDebugMessage, LogErrorMessage} from "../logger.js";
 import {LogCreateAuthToken} from "./dblogger.js";
-import {GenerateNewAccesToken} from "../InputValidator.js";
+import {DoPasswordHashesMatch, GenerateNewAccesToken, GetPasswordHash} from "../InputValidator.js";
 
 let dbcontext;
 
@@ -27,20 +27,21 @@ export async function CreateDbContext(env){
     });
 }
 
-/*Checks if the provided login info is a valid entry in the database (password is hashed)
+/*Checks if the provided login info is a valid entry in the database (password is unhashed)
 * resolves with the user id if successful, RESOLVES(not rejects) with undefined if empty, 
 * only rejects if username or password empty*/
-export async function ValidateLogin(username, passwordHash){
+export async function ValidateLogin(username, password){
     return new Promise(async (resolve,reject) => {
-        if (!username || !passwordHash){
+        if (!username || !password){
             return reject("username or password was empty");
         }
 
-        const query = `SELECT id FROM authentication.user WHERE name = ? AND passkey = ? LIMIT 1`
-        const row = await dbcontext.promise().query(query, [username,passwordHash]);
+        // Get passkey from database for provided username then validate over bcrypt
+        const query = `SELECT * FROM authentication.user WHERE name = ? LIMIT 1`
+        const row = await dbcontext.promise().query(query, [username]);
         const data = row[0];
         
-        if (data.length > 0){
+        if (data.length > 0 && await DoPasswordHashesMatch(password, data[0].passkey)){
             // valid login
             return resolve(data[0].id);
         }
