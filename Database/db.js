@@ -70,10 +70,15 @@ export async function GenerateAuthenticationToken(userid){
     });
 }
 
-/*Expires all authentication for the provided user id*/
+/*Expires all authentication for the provided user id, doesnt reject on failure*/
 export async function ExpireAllAuthenticationTokensForUser(userid){
     return new Promise(async (resolve,reject) => {
-        // TODO : implement
+        const query = "UPDATE authentication.accesstoken SET expired=true WHERE user=?";
+        const complete_message = await dbcontext.promise().query(query, [userid]).catch((err) => LogErrorMessage(err.message,err));
+        if (!complete_message){
+            return resolve("Expiring Authentication failed, ignoring...");
+        }
+        return resolve("Expiring authentication completed");
     });
 }
 
