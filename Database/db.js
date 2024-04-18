@@ -1,5 +1,6 @@
 import * as mysql from "mysql2";
 import {LogDebugMessage, LogErrorMessage} from "../logger.js";
+import {LogCreateAuthToken} from "./dblogger.js";
 
 let dbcontext;
 
@@ -25,7 +26,9 @@ export async function CreateDbContext(env){
     });
 }
 
-/*Checks if the provided login info is a valid entry in the database (password is hashed)*/
+/*Checks if the provided login info is a valid entry in the database (password is hashed)
+* resolves with the user id if successful, RESOLVES(not rejects) with undefined if empty, 
+* only rejects if username or password empty*/
 export async function IsLoginValid(username, passwordHash){
     return new Promise(async (resolve,reject) => {
         if (!username || !passwordHash){
@@ -39,15 +42,20 @@ export async function IsLoginValid(username, passwordHash){
         const row = await dbcontext.promise().query(query, [exampleLogonuser,exampleLogonpass]);
         const data = row[0];
         
-        return resolve(data.length > 0);
+        if (data.length > 0){
+            // valid login
+            return resolve(data[0].id);
+        }
+        // invalid login
+        return resolve(undefined);
     });
 }
 
-/*Generates an authentication token for the provided userid and adds it to the database marked as NOT-expired*/
+/*Generates an authentication token for the provided userid and adds it to the database marked as NOT-expired 
+* resolves with the token if successful*/
 export async function GenerateAuthenticationToken(userid){
     return new Promise(async (resolve,reject) => {
         // TODO : implement
-        
     });
 }
 
@@ -58,7 +66,7 @@ export async function ExpireAllAuthenticationTokensForUser(userid){
     });
 }
 
-/*Adds a log entry with the provided data*/
+/*Adds a log entry with the provided data, rejects if message or ip are empty and/or inserting into db fails*/
 export async function AddLogEntry(message, ip, userid_nullable, accessToken_nullable, accessType_nullable){
     return new Promise(async (resolve,reject) => {
         if (!message || !ip){
