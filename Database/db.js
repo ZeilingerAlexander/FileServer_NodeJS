@@ -35,12 +35,9 @@ export async function ValidateLogin(username, passwordHash){
         if (!username || !passwordHash){
             return reject("username or password was empty");
         }
-        
-        const exampleLogonuser = "test";
-        const exampleLogonpass = "pass";
-        
+
         const query = `SELECT id FROM authentication.user WHERE name = ? AND passkey = ? LIMIT 1`
-        const row = await dbcontext.promise().query(query, [exampleLogonuser,exampleLogonpass]);
+        const row = await dbcontext.promise().query(query, [username,passwordHash]);
         const data = row[0];
         
         if (data.length > 0){
