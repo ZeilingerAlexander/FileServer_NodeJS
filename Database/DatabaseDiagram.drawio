@@ -1,6 +1,6 @@
-<mxfile host="Electron" modified="2024-04-17T11:09:38.753Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.3.7 Chrome/112.0.5615.204 Electron/24.5.0 Safari/537.36" etag="krFSspS5ECcKJHUYTG-1" version="21.3.7" type="device">
+<mxfile host="Electron" modified="2024-04-18T04:40:37.299Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.3.7 Chrome/112.0.5615.204 Electron/24.5.0 Safari/537.36" etag="we-qIcbCxHk8bW3SojYZ" version="21.3.7" type="device">
   <diagram name="Page-1" id="KxiMXlsNdQkw01ZYBWxt">
-    <mxGraphModel dx="979" dy="560" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="832" dy="731" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -10,7 +10,7 @@
         <mxCell id="Ontk7vjWD-6n_7XR-B6x-2" value="id" style="text;strokeColor=#82b366;fillColor=#d5e8d4;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=12;whiteSpace=wrap;html=1;" parent="Ontk7vjWD-6n_7XR-B6x-1" vertex="1">
           <mxGeometry y="26" width="160" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="rMWHNyJeiewgY2snoswz-1" value="name (UQ)" style="text;strokeColor=#9673a6;fillColor=#e1d5e7;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="Ontk7vjWD-6n_7XR-B6x-1">
+        <mxCell id="rMWHNyJeiewgY2snoswz-1" value="name (UQ)" style="text;strokeColor=#9673a6;fillColor=#e1d5e7;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=12;whiteSpace=wrap;html=1;" parent="Ontk7vjWD-6n_7XR-B6x-1" vertex="1">
           <mxGeometry y="56" width="160" height="30" as="geometry" />
         </mxCell>
         <mxCell id="Ontk7vjWD-6n_7XR-B6x-3" value="passkey" style="text;strokeColor=#9673a6;fillColor=#e1d5e7;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=12;whiteSpace=wrap;html=1;" parent="Ontk7vjWD-6n_7XR-B6x-1" vertex="1">
@@ -28,7 +28,7 @@
         <mxCell id="Ontk7vjWD-6n_7XR-B6x-7" value="int NN" style="text;html=1;strokeColor=#6c8ebf;fillColor=#dae8fc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="120" width="120" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="Ontk7vjWD-6n_7XR-B6x-8" value="Datetime N" style="text;html=1;strokeColor=#d79b00;fillColor=#ffe6cc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+        <mxCell id="Ontk7vjWD-6n_7XR-B6x-8" value="varchar(100) N" style="text;html=1;strokeColor=#d79b00;fillColor=#ffe6cc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="240" width="120" height="30" as="geometry" />
         </mxCell>
         <mxCell id="Ontk7vjWD-6n_7XR-B6x-11" value="bool NN" style="text;html=1;strokeColor=#d6b656;fillColor=#fff2cc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
