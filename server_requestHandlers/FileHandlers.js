@@ -45,3 +45,19 @@ export async function HandleNotFound(req,res){
         }
     });
 }
+
+/*Handles returning the 403 page*/
+export async function HandleUnauthorized(req,res){
+    return new Promise (async (resolve,reject) => {
+        req.url = process.env.UNAUTHORIZEDPAGE_RELATIVEPATH;
+        const success_message = await HandleGetFile(req, res).catch(
+            (err) => console.log(err)
+        )
+        if (success_message){
+            return resolve("Successfully got 403 page");
+        }
+        else{
+            return reject("Failed to get 403 page");
+        }
+    });
+}

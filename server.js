@@ -2,7 +2,7 @@
 import * as http from "http";
 import {HandleQuery, IsRequestQueryRequest} from "./server_requestHandlers/QueryHandlers.js";
 import {IsRelativePathFile} from "./InputValidator.js";
-import {HandleGetFile, HandleNotFound} from "./server_requestHandlers/FileHandlers.js";
+import {HandleGetFile, HandleNotFound, HandleUnauthorized} from "./server_requestHandlers/FileHandlers.js";
 import {HandleGetDirectoryNavigator} from "./server_requestHandlers/DirectoryHandlers.js";
 import {LogDebugMessage, LogErrorMessage} from "./logger.js";
 import {HandleAuthorizationOnRequest} from "./Authorization/auth.js";
@@ -28,7 +28,7 @@ async function on_ServerRequest(req, res){
         (err) => LogErrorMessage("Authorization failed",err)
     );
     if (!authorization_success_message){
-        // TODO : ADD RETURNING UNAUTHORIZED PAGE
+        await HandleUnauthorized();
         return;
     }
     await LogDebugMessage(authorization_success_message);
