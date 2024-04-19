@@ -2,6 +2,7 @@ import * as mysql from "mysql2";
 import {LogDebugMessage, LogErrorMessage} from "../logger.js";
 import {LogCreateAuthToken} from "./dblogger.js";
 import {DoPasswordHashesMatch, GenerateNewAccesToken, GetPasswordHash} from "../InputValidator.js";
+import {hash} from "bcrypt";
 
 let dbcontext;
 
@@ -56,12 +57,14 @@ export async function GenerateAuthenticationToken(userid){
     return new Promise(async (resolve,reject) => {
         if (!userid){ return reject("userid cant be empty");}
         
+        // Get the unhashed token for the client to use and store the hashed token inside the db
         const token = await GenerateNewAccesToken();
+        const hashedToken = await GetPasswordHash(token);
         
         // insert token into db
         const query = "INSERT INTO authentication.accesstoken (token, expired, user) " +
             "VALUES (?,?,?)";
-        const complete_message = await dbcontext.promise().query(query, [token, false, userid]).catch((err) => LogErrorMessage(err.message, err));
+        const complete_message = await dbcontext.promise().query(query, [hashedToken, false, userid]).catch((err) => LogErrorMessage(err.message, err));
         if (!complete_message){return reject("Failed to insert auth token into db");}
         
         return resolve(token);

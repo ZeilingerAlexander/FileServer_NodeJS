@@ -127,7 +127,9 @@ export async function GetRequestBody(req){
             body += data;
         });
         req.on("end", () => {
-            body = JSON.parse(body);
+            if (body){
+                body = JSON.parse(body);
+            }
             return resolve(body);
         });
     });

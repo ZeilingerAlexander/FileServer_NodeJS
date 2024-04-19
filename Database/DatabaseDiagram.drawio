@@ -1,6 +1,6 @@
-<mxfile host="Electron" modified="2024-04-18T04:40:37.299Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.3.7 Chrome/112.0.5615.204 Electron/24.5.0 Safari/537.36" etag="we-qIcbCxHk8bW3SojYZ" version="21.3.7" type="device">
+<mxfile host="Electron" modified="2024-04-19T05:58:53.123Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.3.7 Chrome/112.0.5615.204 Electron/24.5.0 Safari/537.36" etag="a-_sIyIDYTtN_xppqQz9" version="21.3.7" type="device">
   <diagram name="Page-1" id="KxiMXlsNdQkw01ZYBWxt">
-    <mxGraphModel dx="832" dy="731" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="832" dy="476" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -28,7 +28,7 @@
         <mxCell id="Ontk7vjWD-6n_7XR-B6x-7" value="int NN" style="text;html=1;strokeColor=#6c8ebf;fillColor=#dae8fc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="120" width="120" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="Ontk7vjWD-6n_7XR-B6x-8" value="varchar(100) N" style="text;html=1;strokeColor=#d79b00;fillColor=#ffe6cc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+        <mxCell id="Ontk7vjWD-6n_7XR-B6x-8" value="Datetime N" style="text;html=1;strokeColor=#d79b00;fillColor=#ffe6cc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="240" width="120" height="30" as="geometry" />
         </mxCell>
         <mxCell id="Ontk7vjWD-6n_7XR-B6x-11" value="bool NN" style="text;html=1;strokeColor=#d6b656;fillColor=#fff2cc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">

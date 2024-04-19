@@ -19,6 +19,8 @@ export async function HandleAuthorizationOnRequest(req, res){
             return resolve("Authorization not needed for this request, skipping...");
         }
         // TODO : IMPLEMENT CHECK IF AUTHORIZATION TOKEN IS VALID
+        console.log(req.headers.cookie);
+        
         return resolve("NOT IMPLEMENTED");
     });
 }
