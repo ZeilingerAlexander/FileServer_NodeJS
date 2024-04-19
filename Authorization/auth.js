@@ -3,7 +3,12 @@
 import {GetQueryRequestRawURL, IsRequestQueryRequest} from "../server_requestHandlers/QueryHandlers.js";
 import {GetParsedCookies, GetPasswordHash, GetRequestBody, GetUrlParameters} from "../InputValidator.js";
 import {LogDebugMessage, LogErrorMessage} from "../logger.js";
-import {ExpireAllAuthenticationTokensForUser, GenerateAuthenticationToken, ValidateLogin} from "../Database/db.js";
+import {
+    ExpireAllAuthenticationTokensForUser,
+    GenerateAuthenticationToken,
+    ValidateAuthToken,
+    ValidateLogin
+} from "../Database/db.js";
 
 const AllowedUnauthorizedQueryEndpoints = [
     "PostAuthorizationLogin"
@@ -18,14 +23,16 @@ export async function HandleAuthorizationOnRequest(req, res){
         if (IsRequestQueryRequest(req) && AllowedUnauthorizedQueryEndpoints.includes(await GetQueryRequestRawURL(req.url))){
             return resolve("Authorization not needed for this request, skipping...");
         }
-        // TODO : IMPLEMENT CHECK IF AUTHORIZATION TOKEN IS VALID
+        // TODO : ADD CACHING OF LAST USED TOKEN INSIDE MEMORY TO MINIMIZE DATABASE ACCESS WAIT TIME FOR USER
+        // TODO : ASK IF THIS IS GOOD PRACTICE SINCE INVALIDATING TOKENS WOULD BE HARDER ?????
+        // TODO : MAYBE ADD AN "ADMIN" FUNCTION AS A POST TO INVALIDATE CACHED AND THE ONES IN THE DB (SHOULD WORK)
         const cookies = await GetParsedCookies(req.headers.cookie);
-        if (!cookies || !cookies.Authorization){return reject("failed to get auth cookie");}
-        console.log(cookies);
-        console.log(cookies);
-        console.log(cookies);
+        if (!cookies || !cookies.Authorization || !cookies.userID){return reject("failed to get parts of auth cookie");}
         
-        return resolve("NOT IMPLEMENTED");
+        if (await ValidateAuthToken(cookies.userID, cookies.Authorization)){
+            return resolve("Authentication completed successfully");
+        }
+        return reject("Authentication failed");
     });
 }
 

@@ -220,11 +220,11 @@ export async function GetParsedCookies(cookiestr, overwriteProtection){
     });
 }
 
-/*Checks if the provided password and hash match, this is not an equals operation due to salting, rejects on empty input*/
-export async function DoPasswordHashesMatch(password,hash){
+/*Checks if the provided data and hash match, this is not an equals operation due to salting, rejects on empty input*/
+export async function DoesDataMatchHash(data, hash){
     return new Promise (async (resolve,reject) => {
-        if (!password || !hash){
-            return reject("password and hash cant be empty")}
-        return resolve(await bcrypt.compare(password, hash));
+        if (!data || !hash){
+            return reject("data and hash cant be empty")}
+        return resolve(await bcrypt.compare(data, hash));
     });
 }

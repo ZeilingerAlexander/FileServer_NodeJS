@@ -1,7 +1,7 @@
 import * as mysql from "mysql2";
 import {LogDebugMessage, LogErrorMessage} from "../logger.js";
 import {LogCreateAuthToken} from "./dblogger.js";
-import {DoPasswordHashesMatch, GenerateNewAccesToken, GetPasswordHash} from "../InputValidator.js";
+import {DoesDataMatchHash, GenerateNewAccesToken, GetPasswordHash} from "../InputValidator.js";
 import {hash} from "bcrypt";
 
 let dbcontext;
@@ -42,7 +42,7 @@ export async function ValidateLogin(username, password){
         const row = await dbcontext.promise().query(query, [username]);
         const data = row[0];
         
-        if (data.length > 0 && await DoPasswordHashesMatch(password, data[0].passkey)){
+        if (data.length > 0 && await DoesDataMatchHash(password, data[0].passkey)){
             // valid login
             return resolve(data[0].id);
         }
@@ -102,3 +102,22 @@ export async function AddLogEntry(message, ip, userid_nullable, accessToken_null
     });
 }
 
+/*Resolves true if authorization for first non-expired authentication token of provided user id matches provied auth token (not-hashed)
+* rejects if any parms empty*/
+export async function ValidateAuthToken(userid, token){
+    return new Promise (async (resolve,reject) => {
+        if (!userid || !token){
+            return reject("userid and token cant be empty");
+        }
+        
+        const query = "SELECT token FROM authentication.accesstoken WHERE user = ? AND expired = ?"
+        const db_auth_token_row = await dbcontext.promise().query(query, [userid,false]).catch(
+            (err) => LogErrorMessage(err.message,err));
+        const data = db_auth_token_row[0];
+        
+        if (data.length > 0 && await DoesDataMatchHash(token, data[0].token)){
+            return resolve(true);
+        }
+        return resolve(false);
+    });
+}
