@@ -176,6 +176,11 @@ export async function GenerateNewAccesToken(){
 * offers default protection by limiting the input, this can be overwritten by setting overwritePortetcion to true (parm2)*/
 export async function GetParsedCookies(cookiestr, overwriteProtection){
     return new Promise(async (resolve, reject) => {
+        // return empty if cookiestr empty
+        if (!cookiestr){
+            return resolve(undefined);
+        }
+        
         // limit input if overwritePortection true
         if (!overwriteProtection){
             const equalCount = (cookiestr.match(/=/g) || []).length;

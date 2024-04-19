@@ -6,7 +6,7 @@ import {LogDebugMessage, LogErrorMessage} from "../logger.js";
 import {ExpireAllAuthenticationTokensForUser, GenerateAuthenticationToken, ValidateLogin} from "../Database/db.js";
 
 const AllowedUnauthorizedQueryEndpoints = [
-    "PostAuthorization"
+    "PostAuthorizationLogin"
 ]
 
 /*Handles Authorization on the provided req and result
@@ -46,7 +46,7 @@ export async function HandleAuthorizationLoginOnPost(req,res){
         const authToken = await GenerateAuthenticationToken(userID).catch((err) => LogErrorMessage(err.message,err));
         if (!authToken){return reject("Failed to generate auth token");}
         
-        res.writeHead(200, {"Set-Cookie" : `Authorization=${authToken}; SameSite=Lax;Path=/`});
+        res.writeHead(200, {"Set-Cookie" : [`Authorization=${authToken}; SameSite=Lax;Path=/`, `userID=${userID};SameSite=Lax;Path=/`]});
         res.end();
         resolve("test-ignore");
     });
