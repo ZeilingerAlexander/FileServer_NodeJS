@@ -1,7 +1,7 @@
 
 /*Allowed Query endpoints that can be accessed by unauthorized users*/
 import {GetQueryRequestRawURL, IsRequestQueryRequest} from "../server_requestHandlers/QueryHandlers.js";
-import {GetPasswordHash, GetRequestBody, GetUrlParameters} from "../InputValidator.js";
+import {GetParsedCookies, GetPasswordHash, GetRequestBody, GetUrlParameters} from "../InputValidator.js";
 import {LogDebugMessage, LogErrorMessage} from "../logger.js";
 import {ExpireAllAuthenticationTokensForUser, GenerateAuthenticationToken, ValidateLogin} from "../Database/db.js";
 
@@ -19,7 +19,11 @@ export async function HandleAuthorizationOnRequest(req, res){
             return resolve("Authorization not needed for this request, skipping...");
         }
         // TODO : IMPLEMENT CHECK IF AUTHORIZATION TOKEN IS VALID
-        console.log(req.headers.cookie);
+        const cookies = await GetParsedCookies(req.headers.cookie);
+        if (!cookies || !cookies.Authorization){return reject("failed to get auth cookie");}
+        console.log(cookies);
+        console.log(cookies);
+        console.log(cookies);
         
         return resolve("NOT IMPLEMENTED");
     });

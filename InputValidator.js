@@ -3,6 +3,7 @@ import {promises as fsp} from "fs";
 import {AllowedDirectories} from "./variables/AllowedDirectories.js";
 import {LogDebugMessage, LogErrorMessage} from "./logger.js";
 import * as bcrypt from "bcrypt";
+import {reject} from "bcrypt/promises.js";
 
 // ...
 
@@ -168,6 +169,49 @@ export async function GenerateNewAccesToken(){
             key += key;
         }
         return resolve(key.substring(0,250));
+    });
+}
+
+/*Gets the Parsed Cookies object (key,value) from the provided cookie string
+* offers default protection by limiting the input, this can be overwritten by setting overwritePortetcion to true (parm2)*/
+export async function GetParsedCookies(cookiestr, overwriteProtection){
+    return new Promise(async (resolve, reject) => {
+        // limit input if overwritePortection true
+        if (!overwriteProtection){
+            const equalCount = (cookiestr.match(/=/g) || []).length;
+            if (equalCount > 100){
+                return reject("input too large");
+            }
+        }
+        
+        //c o o k i e = t e s t ; c l o c k = t i c k
+        //c o o k i e[=]t e s t ; c l o c k = t i c k
+        //c o o k i e[=]t e s t [;] c l o c k = t i c k
+        //[c o o k i e][=][t e s t] [;] c l o c k = t i c k
+        //      key         val         i
+        
+        let cookies = {};
+        let index = 0;
+        while (index < cookiestr.length){
+            let equalIndex = cookiestr.indexOf("=", index);
+            let semiIndex = cookiestr.indexOf(";", index);
+            
+            // no more entries
+            if (equalIndex === -1){
+                break;
+            }
+            
+            // default semiIndex to lastpos if no found
+            if (semiIndex === -1){
+                semiIndex = cookiestr.length;
+            }
+            
+            let key = cookiestr.slice(index,equalIndex).trim();
+            let value = cookiestr.slice(equalIndex+1,semiIndex).trim();
+            cookies[key] = value;
+            index = semiIndex+1;
+        }
+        return resolve(cookies);
     });
 }
 
