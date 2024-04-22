@@ -6,5 +6,44 @@
 </head>
 <body>
 <h1>Unauthorized</h1>
+<form onsubmit="LoginFormSubmit()" method="post">
+    <input type="text" placeholder="username" name="username">
+    <input type="password" placeholder="password" name="password">
+    <input type="submit" value="login">
+    <p id="resultInfoText"></p>
+</form>
 </body>
+
+<script type="text/javascript">
+    async function LoginFormSubmit(){
+        console.log("login form submitted");
+        
+        const pathname = window.location.pathname;
+        const origin = window.location.origin;
+        const fullPath = origin + "/POST" + "/PostAuthorizationLogin";
+        
+        console.log(fullPath);
+        const response = await fetch(fullPath, {
+            method : "POST",
+            body: JSON.stringify({
+                username : FormData.username,
+                password : FormData.password
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        });
+
+        console.log(response);
+        
+        const resultInfoTextRef = document.getElementById("resultInfoText");
+        
+        if (response.status == 200){
+            resultInfoTextRef.textContent = "Success!";
+        }
+        else {
+            resultInfoTextRef.textContent = "login failure";
+        }
+    }
+</script>
 </html>

@@ -7,6 +7,7 @@ import * as path from "path";
 import {LogDebugMessage} from "./logger.js";
 import {GenerateSensitiveInformation} from "./GenerateSensitiveInformation.js";
 import {CreateDbContext} from "./Database/db.js";
+import {GetPasswordHash} from "./InputValidator.js";
 
 // set env path
 config ({path: "./.env"});
