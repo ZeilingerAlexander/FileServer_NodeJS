@@ -28,7 +28,7 @@ async function on_ServerRequest(req, res){
         (err) => LogErrorMessage("Authorization failed",err)
     );
     if (!authorization_success_message){
-        await HandleUnauthorized();
+        await HandleUnauthorized(req, res);
         return;
     }
     await LogDebugMessage(authorization_success_message);
