@@ -59,5 +59,14 @@ export async function HandleAuthorizationLoginOnPost(req,res){
 
 /*Logs the user with the given id out of all if any active sessions by invalidatiing the tokens he owns*/
 export async function LogoutUser(userid){
-    // TODO : Implement
+    return new Promise(async (resolve,reject) => {
+        if (!userid){
+            return reject("userid cant be empty");
+        }
+        const response = await ExpireAllAuthenticationTokensForUser(userid).catch((err) => LogErrorMessage(err.message, err));
+        if (!response){
+            return reject("Failed to expire all auth tokens for user");
+        }
+        return resolve("Successfully expired all auth tokens for user");
+    });
 }
