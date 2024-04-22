@@ -14,6 +14,7 @@ const AllowedUnauthorizedQueryEndpoints = [
     "PostAuthorizationLogin"
 ]
 
+
 /*Handles Authorization on the provided req and result
 * resolves if no action is needed
 * reject if program should not handle the request any further because auth failed*/
@@ -23,9 +24,6 @@ export async function HandleAuthorizationOnRequest(req, res){
         if (IsRequestQueryRequest(req) && AllowedUnauthorizedQueryEndpoints.includes(await GetQueryRequestRawURL(req.url))){
             return resolve("Authorization not needed for this request, skipping...");
         }
-        // TODO : ADD CACHING OF LAST USED TOKEN INSIDE MEMORY TO MINIMIZE DATABASE ACCESS WAIT TIME FOR USER
-        // TODO : ASK IF THIS IS GOOD PRACTICE SINCE INVALIDATING TOKENS WOULD BE HARDER ?????
-        // TODO : MAYBE ADD AN "ADMIN" FUNCTION AS A POST TO INVALIDATE CACHED AND THE ONES IN THE DB (SHOULD WORK)
         const cookies = await GetParsedCookies(req.headers.cookie);
         if (!cookies || !cookies.Authorization || !cookies.userID){return reject("failed to get parts of auth cookie");}
         
@@ -55,7 +53,7 @@ export async function HandleAuthorizationLoginOnPost(req,res){
         
         res.writeHead(200, {"Set-Cookie" : [`Authorization=${authToken}; SameSite=Lax;Path=/`, `userID=${userID};SameSite=Lax;Path=/`]});
         res.end();
-        resolve("test-ignore");
+        resolve("Successfully completed handling auth");
     });
 }
 
