@@ -1,19 +1,29 @@
 // Handlers for queries (not files/dirs)
 
-/*The Defined Get endpoints for the part after the /GET/*/
 import {HandleGetDirectoryStructure} from "./GETEndpoints/GetDirectoryStructure.js";
 import {LogErrorMessage} from "../logger.js";
+import {HandleNotFound} from "./FileHandlers.js";
+import {HandleAuthorizationLoginOnPost} from "../Authorization/auth.js";
 
-const GetEndpoints = {
-    GetDirectoryStructure : HandleGetDirectoryStructure
+/*The Allowed Query Url entry points, example : /GET/ /POST/, ...*/
+const ValidQueryUrlEntryPoints = [
+    "/GET/",
+    "/POST/"
+]
+
+/*The Defined endpoints for query requests -> example : /GET/...*/
+const QueryEndpoints = {
+    GetDirectoryStructure : HandleGetDirectoryStructure,
+    PostAuthorizationLogin : HandleAuthorizationLoginOnPost
 }
 
-/*Handles a /GET/ query, returns 404 if not found*/
-export async function HandleGetQuery(req, res){
+/*Handles a Query endpoint defined under QueryEndpoints, returns 404 if not found*/
+export async function HandleQuery(req, res){
     return new Promise(async (resolve, reject) => {
-        const requestEndpointString = await GetRequestRawURL(req.url);
-        const requestEndpoint = GetEndpoints[requestEndpointString] || undefined;
+        const requestEndpointString = await GetQueryRequestRawURL(req.url);
+        const requestEndpoint = QueryEndpoints[requestEndpointString] || undefined;
         if (!requestEndpoint){
+            await HandleNotFound(req, res);
             return reject("No Request endpoint found");
         }
         
@@ -27,17 +37,22 @@ export async function HandleGetQuery(req, res){
     });
 }
 
-/*Returns the Part of the get request after /GET/ and before the paramaters
-* example : /GET/getendpoint?params=1234 --RETURNS--> getendpoint*/
-export async function GetRequestRawURL(url){
+/*Returns the Part of the request after the query entry point and before the paramaters
+* example : /GET/getendpoint?params=1234 --RETURNS--> getendpoint
+* DO NOT call this on unchecked input since it will stripe url beginning from first / and to second /*/
+export async function GetQueryRequestRawURL(url){
     return new Promise( async (resolve, reject) => {
         url = url.toString();
-        if (!url.startsWith("/GET/")){
+        // Remove everything from the first / to the second / -> example : /POST/query ... query
+        url = url.substring(1,url.length);
+        const escapePos= url.indexOf("/");
+        if (escapePos == -1 || escapePos == url.length-1){
             return reject("Bad URL provided");
         }
-        const rawGetUrl = url.substring(5, url.length);
-        const rawGetUrlWithoutParams = await GetURLWithoutParams(rawGetUrl);
-        return resolve(rawGetUrlWithoutParams);
+        url = url.substring(escapePos+1, url.length);
+       
+        const ParsedURlWithoutParams = await GetURLWithoutParams(url);
+        return resolve(ParsedURlWithoutParams);
     });
 }
 
@@ -55,4 +70,16 @@ async function GetURLWithoutParams(url){
             return resolve(url);
         }
     });
+}
+
+
+
+/*Checks if the provided request is a query request, returns true if so, returns false if not*/
+export function IsRequestQueryRequest(req){
+    for (const reqKey in ValidQueryUrlEntryPoints) {
+        if (req.url.toString().startsWith(ValidQueryUrlEntryPoints[reqKey])){
+            return true;
+        }
+    }
+    return false;
 }

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>403</title>
+</head>
+<body>
+<h1>Unauthorized</h1>
+<form onsubmit="LoginFormSubmit(event)" method="post" id="loginForm">
+    <input type="text" placeholder="username" name="username">
+    <input type="password" placeholder="password" name="password">
+    <input type="submit" value="login">
+    <p id="resultInfoText"></p>
+</form>
+</body>
+
+<script type="text/javascript">
+    async function LoginFormSubmit(e){
+        console.log("login form submitted");
+        e.preventDefault();
+        
+        // build formdata object
+        const loginFormRef = document.getElementById("loginForm");
+        let formData = Object.fromEntries(new FormData(loginFormRef));
+        
+        const origin = window.location.origin;
+        const fullPath = origin + "/POST" + "/PostAuthorizationLogin";
+
+        const response = await fetch( origin + "/POST" + "/PostAuthorizationLogin", {
+            method : "POST",
+            body: JSON.stringify({
+                username : formData.username,
+                password : formData.password
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        });
+
+        console.log(response);
+        
+        const resultInfoTextRef = document.getElementById("resultInfoText");
+        
+        if (response.status == 200){
+            resultInfoTextRef.textContent = "Success!";
+            window.location.reload();
+        }
+        else {
+            resultInfoTextRef.textContent = "login failure";
+        }
+    }
+</script>
+</html>
