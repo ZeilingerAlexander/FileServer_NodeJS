@@ -6,7 +6,7 @@
 </head>
 <body>
 <h1>Unauthorized</h1>
-<form onsubmit="LoginFormSubmit()" method="post">
+<form onsubmit="LoginFormSubmit(event)" method="post" id="loginForm">
     <input type="text" placeholder="username" name="username">
     <input type="password" placeholder="password" name="password">
     <input type="submit" value="login">
@@ -15,19 +15,22 @@
 </body>
 
 <script type="text/javascript">
-    async function LoginFormSubmit(){
+    async function LoginFormSubmit(e){
         console.log("login form submitted");
+        e.preventDefault();
         
-        const pathname = window.location.pathname;
+        // build formdata object
+        const loginFormRef = document.getElementById("loginForm");
+        let formData = Object.fromEntries(new FormData(loginFormRef));
+        
         const origin = window.location.origin;
         const fullPath = origin + "/POST" + "/PostAuthorizationLogin";
-        
-        console.log(fullPath);
-        const response = await fetch(fullPath, {
+
+        const response = await fetch( origin + "/POST" + "/PostAuthorizationLogin", {
             method : "POST",
             body: JSON.stringify({
-                username : FormData.username,
-                password : FormData.password
+                username : formData.username,
+                password : formData.password
             }),
             headers: {
                 "Content-type": "application/json; charset=UTF-8"
@@ -40,6 +43,7 @@
         
         if (response.status == 200){
             resultInfoTextRef.textContent = "Success!";
+            window.location.reload();
         }
         else {
             resultInfoTextRef.textContent = "login failure";
