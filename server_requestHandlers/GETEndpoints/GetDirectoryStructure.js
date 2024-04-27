@@ -58,12 +58,21 @@ export async function HandleGetDirectoryStructure(req, res){
             const fileStats = await fsp.lstat(FullEntryPath).catch(
                 (err) => LogErrorMessage(err.message,err)
             );
-
+            console.log(fileStats);
+            
             // check if is directory
             const isDirectory = fileStats && fileStats.isDirectory() && !fileStats.isFile();
             
             // push to directory structure
-            DirectoryStructure.push({name : directoryEntry, Directory : isDirectory});
+            DirectoryStructure.push(
+                {
+                    name : directoryEntry, 
+                    Directory : isDirectory,
+                    size : fileStats.size,
+                    lastModified : fileStats.mtimeMs,
+                    creationTime : fileStats.birthtimeMs
+                }
+            );
         }
 
         // Write content as json
