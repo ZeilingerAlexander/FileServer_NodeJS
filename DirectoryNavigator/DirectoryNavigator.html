@@ -42,7 +42,8 @@
             let body = await response.json();
             for (const i in body) {
                 const link = body[i];
-                GenerateLink(link[0], link[1]);
+                console.log(link);
+                GenerateLink(link.name, link.Directory);
             }
         }
         else {

@@ -60,12 +60,10 @@ export async function HandleGetDirectoryStructure(req, res){
             );
 
             // check if is directory
-            if (fileStats && fileStats.isDirectory() && !fileStats.isFile()){
-                DirectoryStructure.push([directoryEntry, true]);
-            }
-            else{
-                DirectoryStructure.push([directoryEntry, false]);
-            }
+            const isDirectory = fileStats && fileStats.isDirectory() && !fileStats.isFile();
+            
+            // push to directory structure
+            DirectoryStructure.push({name : directoryEntry, Directory : isDirectory});
         }
 
         // Write content as json
