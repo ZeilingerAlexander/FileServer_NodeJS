@@ -16,19 +16,22 @@ const AllowedUnauthorizedQueryEndpoints = [
 
 
 /*Handles Authorization on the provided req and result
-* resolves with the access level 
+* resolves with the access level and user id inside an object 
 * reject if program should not handle the request any further because auth failed*/
 export async function HandleAuthorizationOnRequest(req, res){
     return new Promise(async (resolve,reject) => {
         // Check if authorization is not needed for this request
         if (IsRequestQueryRequest(req) && AllowedUnauthorizedQueryEndpoints.includes(await GetQueryRequestRawURL(req.url))){
-            return resolve(999);
+            return resolve({accessLevel : 999, userID : -1});
         }
         const cookies = await GetParsedCookies(req.headers.cookie);
         if (!cookies || !cookies.Authorization || !cookies.userID){return reject("failed to get parts of auth cookie");}
         
         if (await ValidateAuthToken(cookies.userID, cookies.Authorization)){
-            return resolve(await GetAccessLevelFromUserID(cookies.userID));
+            return resolve({
+                accessLevel : await GetAccessLevelFromUserID(cookies.userID),
+                userID : cookies.userID
+            });
         }
         return reject("Authentication failed");
     });

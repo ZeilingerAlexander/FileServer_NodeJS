@@ -93,6 +93,21 @@ export async function CheckIFPathExists(path){
     });
 }
 
+
+/*Gets the relative user path from the base request by combining the base request path with the user path and the userid
+* then validates it by checking if the new combined path starts with /[env.user]/[userId], rejects if the new path lies outside the bounds of the user path*/
+export async function GetValidatedUserRelativePathFromRequestPath(url, userID){
+    return new Promise (async (resolve,reject) => {
+        const fullPath = path.join(process.env.USERDIRECTORY_RELATIVEPATH.toString(),userID.toString(),url.toString());
+        const expectedPathStart = path.join(process.env.USERDIRECTORY_RELATIVEPATH.toString(),userID.toString());
+        
+        if (fullPath.startsWith(expectedPathStart)){
+            return resolve(fullPath);
+        }
+        return reject("Failed to validate the full combined path for user directory");
+    });
+}
+
 /*Gets the url parameters for the provided url */
 export async function GetUrlParameters(url){
     return new Promise( async (resolve, reject) => {

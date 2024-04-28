@@ -1,7 +1,7 @@
 // the node server
 import * as http from "http";
 import {HandleQuery, IsRequestQueryRequest} from "./server_requestHandlers/QueryHandlers.js";
-import {IsRelativePathFile} from "./InputValidator.js";
+import {GetValidatedUserRelativePathFromRequestPath, IsRelativePathFile} from "./InputValidator.js";
 import {HandleGetFile, HandleNotFound, HandleUnauthorized} from "./server_requestHandlers/FileHandlers.js";
 import {HandleGetDirectoryNavigator} from "./server_requestHandlers/DirectoryHandlers.js";
 import {LogDebugMessage, LogErrorMessage} from "./logger.js";
@@ -24,21 +24,25 @@ async function on_ServerRequest(req, res){
     // TODO : ADD RATE LIMITING OVER IP ADDRESS
     
     // Handle authentication, return if authentication fails
-    const accessLevel = await HandleAuthorizationOnRequest(req, res).catch(
+    const access = await HandleAuthorizationOnRequest(req, res).catch(
         (err) => LogErrorMessage("Authorization failed",err)
     );
-    if (!accessLevel){
+    if (!access){
         await HandleUnauthorized(req, res);
         return;
     }
-    await LogDebugMessage(accessLevel);
+    await LogDebugMessage(access);
+    
+    // set the access level of the request to be used by functions later down the line, also set the user id
+    req.accessLevel = access.accessLevel;
+    req.userID = access.userID;
     
     // TODO : ADD RATE LIMITING OVER USER ID
     // TODO : ADD SOME SORT OF MAX PACKAGE SIZE
     
     // Handle A Query Request if the request is a query request, example : /POST/ /GET/
     // but only if access level is 1 or more (for queries), each query may impose its own rules on handling it
-    if (IsRequestQueryRequest(req) && accessLevel >= 1){
+    if (IsRequestQueryRequest(req) && req.accessLevel >= 1){
         const complete_message = await HandleQuery(req, res).catch(
             (err) => LogErrorMessage(err.message, err)
         );
@@ -51,14 +55,14 @@ async function on_ServerRequest(req, res){
         return;
     }
     
-    if (req.method === "GET" && accessLevel >= 2){
+    if (req.method === "GET" && req.accessLevel >= 2){
         await on_ServerGetRequest(req, res).catch(
             (err) => LogErrorMessage("Handling Server Get Request failed" + err.message, err)
         ).then(
             (msg) => LogDebugMessage("Handling Server Get Request completed " + msg)
         );
     }
-    else if (req.method === "POST" && accessLevel >= 3){
+    else if (req.method === "POST" && req.accessLevel >= 3){
         await on_ServerPostRequest(req, res).catch(
             (err) => LogErrorMessage("Handling Server Post Request failed" + err.message, err)
         ).then(
@@ -75,9 +79,22 @@ async function on_ServerPostRequest(req,res){
 }
 
 /*Gets called on every server get request
-* Handles calling the appropiate handlers depending on the request*/
+* Handles calling the appropiate handlers depending on the request,
+* rejects if access level for the requested path is too low (req.accessLevel,req.userID),
+* automaticly sets the new request path to the correct user directory if request level doesnt allow for full read acccess
+* this means that if access level is too low req.path will turn from (directory/file.txt) to (user/id/directory/file.txt)*/
 async function on_ServerGetRequest(req,res){
     return new Promise(async (resolve, reject) => {
+        // validate and set the new request path if necessary (below 4 = no read access to all)
+        if (req.accessLevel < 4){
+            const validatedRequestPath = await GetValidatedUserRelativePathFromRequestPath(req.url, req.userID).catch((err) => LogErrorMessage(err.message,err));
+            if (!validatedRequestPath){
+                return reject("Failed to validate request path");
+            }
+            req.url = validatedRequestPath;
+        }
+        
+        
         // Request is a file/directory get request, so check the path
         // Request could also be something else but nothing is configured above
         // On Request error return 404 Page
@@ -95,7 +112,8 @@ async function on_ServerGetRequest(req,res){
     });
 }
 
-/*Gets called on server content request, checks if client wants a file or folder then calles the appropiate handler*/
+/*Gets called on server content request, checks if client wants a file or folder then calles the appropiate handler
+* rejects if the path validation fails*/
 async function HandleGetContent(req,res){
     return new Promise( async (resolve, reject) => {
         const isFile = await IsRelativePathFile(req.url).catch(

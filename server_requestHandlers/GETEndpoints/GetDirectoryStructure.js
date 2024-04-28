@@ -3,7 +3,7 @@ import {
     CheckIFPathExists,
     CheckIfPathIsAllowed,
     GetFullPathFromRelativePath,
-    GetUrlParameters, IsPathDirectory
+    GetUrlParameters, GetValidatedUserRelativePathFromRequestPath, IsPathDirectory
 } from "../../InputValidator.js";
 import {LogErrorMessage} from "../../logger.js";
 import fs from "node:fs";
@@ -20,9 +20,18 @@ export async function HandleGetDirectoryStructure(req, res){
         }
         
         // get the val entry of url paramaters since thats where directory location resides
-        const dirLocation = urlParams["val"];
+        let dirLocation = urlParams["val"];
         if (!dirLocation) {
             return reject("Url Paramter val not found, cant get directory location");
+        }
+        
+        // if the accessLevel is < 4 (no read access to all) append the user directory path in front and validate the access over it
+        if (req.accessLevel < 4){
+            const validatedDirectoryLocation = await GetValidatedUserRelativePathFromRequestPath(dirLocation, req.userID).catch((err) => LogErrorMessage(err.message,err));
+            if (!validatedDirectoryLocation){
+                return reject("Failed to validate request path");
+            }
+            dirLocation = validatedDirectoryLocation;
         }
         
         // get full path
