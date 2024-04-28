@@ -58,7 +58,6 @@ export async function HandleGetDirectoryStructure(req, res){
             const fileStats = await fsp.lstat(FullEntryPath).catch(
                 (err) => LogErrorMessage(err.message,err)
             );
-            console.log(fileStats);
             
             // check if is directory
             const isDirectory = fileStats && fileStats.isDirectory() && !fileStats.isFile();

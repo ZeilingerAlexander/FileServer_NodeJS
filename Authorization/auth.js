@@ -5,7 +5,7 @@ import {GetParsedCookies, GetPasswordHash, GetRequestBody, GetUrlParameters} fro
 import {LogDebugMessage, LogErrorMessage} from "../logger.js";
 import {
     ExpireAllAuthenticationTokensForUser,
-    GenerateAuthenticationToken,
+    GenerateAuthenticationToken, GetAccessLevelFromUserID,
     ValidateAuthToken,
     ValidateLogin
 } from "../Database/db.js";
@@ -16,19 +16,19 @@ const AllowedUnauthorizedQueryEndpoints = [
 
 
 /*Handles Authorization on the provided req and result
-* resolves if no action is needed
+* resolves with the access level 
 * reject if program should not handle the request any further because auth failed*/
 export async function HandleAuthorizationOnRequest(req, res){
     return new Promise(async (resolve,reject) => {
         // Check if authorization is not needed for this request
         if (IsRequestQueryRequest(req) && AllowedUnauthorizedQueryEndpoints.includes(await GetQueryRequestRawURL(req.url))){
-            return resolve("Authorization not needed for this request, skipping...");
+            return resolve(999);
         }
         const cookies = await GetParsedCookies(req.headers.cookie);
         if (!cookies || !cookies.Authorization || !cookies.userID){return reject("failed to get parts of auth cookie");}
         
         if (await ValidateAuthToken(cookies.userID, cookies.Authorization)){
-            return resolve("Authentication completed successfully");
+            return resolve(await GetAccessLevelFromUserID(cookies.userID));
         }
         return reject("Authentication failed");
     });

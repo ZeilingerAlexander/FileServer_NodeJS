@@ -1,6 +1,6 @@
-<mxfile host="Electron" modified="2024-04-28T18:39:49.849Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.2.5 Chrome/120.0.6099.291 Electron/28.3.1 Safari/537.36" etag="lR6vLbdBPdAAlrMaOXTS" version="24.2.5" type="device">
+<mxfile host="Electron" modified="2024-04-28T18:58:54.796Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.2.5 Chrome/120.0.6099.291 Electron/28.3.1 Safari/537.36" etag="9Xz_c_NpwWS3VUaIu4nJ" version="24.2.5" type="device">
   <diagram name="Page-1" id="KxiMXlsNdQkw01ZYBWxt">
-    <mxGraphModel dx="926" dy="1228" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="590" dy="758" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -115,7 +115,7 @@
         <mxCell id="z6DRPAj7RePSow2X0bur-2" value="varchar(50) N" style="text;html=1;strokeColor=#56517e;fillColor=#d0cee2;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="120" y="60" width="120" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="UV_OskQfI4QZsb0Tx4-d-3" value="The access Level for the user&lt;div&gt;always includes the previos access level&lt;br&gt;&lt;div&gt;&lt;div&gt;0&lt;/div&gt;&lt;div&gt;no access&lt;/div&gt;&lt;div&gt;1&lt;/div&gt;&lt;div&gt;read for own directory&lt;/div&gt;&lt;div&gt;2&lt;/div&gt;&lt;div&gt;write for own directory&lt;/div&gt;&lt;div&gt;3&lt;/div&gt;&lt;div&gt;read for all directories&lt;/div&gt;&lt;div&gt;4&lt;/div&gt;&lt;div&gt;write for all directories&lt;/div&gt;&lt;div&gt;5&lt;/div&gt;&lt;div&gt;user managment&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="UV_OskQfI4QZsb0Tx4-d-3" value="The access Level for the user&lt;div&gt;always includes the previos access level&lt;div&gt;&lt;div&gt;no access&lt;/div&gt;&lt;div&gt;0&lt;/div&gt;&lt;div&gt;query requests&lt;/div&gt;&lt;div&gt;1&lt;/div&gt;&lt;div&gt;read for own directory&lt;/div&gt;&lt;div&gt;2&lt;/div&gt;&lt;div&gt;write for own directory&lt;/div&gt;&lt;div&gt;3&lt;/div&gt;&lt;div&gt;read for all directories&lt;/div&gt;&lt;div&gt;4&lt;/div&gt;&lt;div&gt;write for all directories&lt;/div&gt;&lt;div&gt;5&lt;/div&gt;&lt;div&gt;user managment&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;6&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="1210" y="210" width="230" height="230" as="geometry" />
         </mxCell>
         <mxCell id="UV_OskQfI4QZsb0Tx4-d-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="UV_OskQfI4QZsb0Tx4-d-1" target="UV_OskQfI4QZsb0Tx4-d-3">

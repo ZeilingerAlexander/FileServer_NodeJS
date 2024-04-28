@@ -24,20 +24,21 @@ async function on_ServerRequest(req, res){
     // TODO : ADD RATE LIMITING OVER IP ADDRESS
     
     // Handle authentication, return if authentication fails
-    const authorization_success_message = await HandleAuthorizationOnRequest(req, res).catch(
+    const accessLevel = await HandleAuthorizationOnRequest(req, res).catch(
         (err) => LogErrorMessage("Authorization failed",err)
     );
-    if (!authorization_success_message){
+    if (!accessLevel){
         await HandleUnauthorized(req, res);
         return;
     }
-    await LogDebugMessage(authorization_success_message);
+    await LogDebugMessage(accessLevel);
     
     // TODO : ADD RATE LIMITING OVER USER ID
     // TODO : ADD SOME SORT OF MAX PACKAGE SIZE
     
     // Handle A Query Request if the request is a query request, example : /POST/ /GET/
-    if (IsRequestQueryRequest(req)){
+    // but only if access level is 1 or more (for queries), each query may impose its own rules on handling it
+    if (IsRequestQueryRequest(req) && accessLevel >= 1){
         const complete_message = await HandleQuery(req, res).catch(
             (err) => LogErrorMessage(err.message, err)
         );
@@ -50,14 +51,14 @@ async function on_ServerRequest(req, res){
         return;
     }
     
-    if (req.method === "GET"){
+    if (req.method === "GET" && accessLevel >= 2){
         await on_ServerGetRequest(req, res).catch(
             (err) => LogErrorMessage("Handling Server Get Request failed" + err.message, err)
         ).then(
             (msg) => LogDebugMessage("Handling Server Get Request completed " + msg)
         );
     }
-    else if (req.method === "POST"){
+    else if (req.method === "POST" && accessLevel >= 3){
         await on_ServerPostRequest(req, res).catch(
             (err) => LogErrorMessage("Handling Server Post Request failed" + err.message, err)
         ).then(

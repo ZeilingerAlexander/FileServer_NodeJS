@@ -121,3 +121,19 @@ export async function ValidateAuthToken(userid, token){
         return resolve(false);
     });
 }
+
+/*resolves with the authorization level for the provided user, resolves with -1 if user not found*/
+export async function GetAccessLevelFromUserID(userID){
+    return new Promise (async (resolve) => {
+        
+        const query = "SELECT accessLevel FROM authentication.user WHERE id = ?"
+        const db_user_row = await dbcontext.promise().query(query, [userID]).catch(
+            (err) => LogErrorMessage(err.message,err));
+        const data = db_user_row[0];
+        
+        if (data.length > 0 && data[0].accessLevel){
+            return resolve(data[0].accessLevel);
+        }
+        return resolve(false);
+    });
+}
