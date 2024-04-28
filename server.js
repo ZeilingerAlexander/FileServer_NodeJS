@@ -61,6 +61,7 @@ async function on_ServerRequest(req, res){
         ).then(
             (msg) => LogDebugMessage("Handling Server Get Request completed " + msg)
         );
+        return;
     }
     else if (req.method === "POST" && req.accessLevel >= 3){
         await on_ServerPostRequest(req, res).catch(
@@ -68,7 +69,11 @@ async function on_ServerRequest(req, res){
         ).then(
             (msg) => LogDebugMessage("Handling Server Post Request completed " + msg)
         );
+        return;
     }
+    
+    // at last if all checks fail just end result
+    res.end();
 }
 
 /*Gets called no post request, handles it depending on the request*/
