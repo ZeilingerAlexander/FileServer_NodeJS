@@ -7,6 +7,7 @@ export const AllowedDirectories = [];
 /*Array of special Relative Directory Paths that traversal validation will not be applied to */
 const AllowedRelativeDirectories = [
     "DirectoryNavigator",
+    "Upload",
     "static"
 ]
 
