@@ -18,3 +18,13 @@
 ## add it to tempfiles (the files being handled)
 ## start the file creation process, on failure try removing leftovers and abort
 ### when completed remove from tempfiles and return success message so frontend knows when to reload
+
+
+
+# todo else
+### add password-expired field to user auth
+### on expire return error message to frontend
+### on other errors also return error messages on login
+### add user page to frontend to change user password
+### add account locked field to user aut table that rejects all login and auth attempts if true
+### add limiting in backend to wrong password attempts (remaining wrong attempts) that gets reset on correct login, if bad login -1 it and if 0 lock account
