@@ -46,7 +46,13 @@
             window.location.reload();
         }
         else {
-            resultInfoTextRef.textContent = "login failure";
+            const msg = await response.text();
+            if (msg){
+                resultInfoTextRef.textContent = msg;
+            }
+            else{
+                resultInfoTextRef.textContent = "Auth failed, unknown error";
+            }
         }
     }
 </script>

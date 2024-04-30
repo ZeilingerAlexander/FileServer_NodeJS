@@ -9,6 +9,7 @@ import {
     ValidateAuthToken,
     ValidateLogin
 } from "../Database/db.js";
+import {HandleSimpleResultMessage} from "../server.js";
 
 const AllowedUnauthorizedQueryEndpoints = [
     "PostAuthorizationLogin"
@@ -42,23 +43,34 @@ export async function HandleAuthorizationOnRequest(req, res){
 export async function HandleAuthorizationLoginOnPost(req,res){
     return new Promise(async (resolve,reject) => {
         const body = await GetRequestBody(req);
-        if (!body || !body.password || !body.username){return reject("Failed to get password or username from body");}
+        if (!body || !body.password || !body.username){
+            await HandleSimpleResultMessage(res, 418, "Bad Request");
+            return reject("Failed to get password or username from body");
+        }
         
         // validate login
         const name = body.username;
         const userID = await ValidateLogin(name, body.password).catch((err) => LogErrorMessage(err.message,err));
-        if (!userID){return reject("Bad Login Info");}
+        if (!userID){
+            await HandleSimpleResultMessage(res, 418, "Bad Login Info");
+            return reject("Bad Login Info");
+        }
         
         // login is valid, expire old ones and generate a new one
         await ExpireAllAuthenticationTokensForUser(userID);
         const authToken = await GenerateAuthenticationToken(userID).catch((err) => LogErrorMessage(err.message,err));
-        if (!authToken){return reject("Failed to generate auth token");}
+        if (!authToken){
+            await HandleSimpleResultMessage(res, 418, "Database Error");
+            return reject("Failed to generate auth token");
+        }
         
         res.writeHead(200, {"Set-Cookie" : [`Authorization=${authToken}; SameSite=Lax;Path=/`, `userID=${userID};SameSite=Lax;Path=/`]});
         res.end();
         resolve("Successfully completed handling auth");
     });
 }
+
+
 
 /*Logs the user with the given id out of all if any active sessions by invalidatiing the tokens he owns*/
 export async function LogoutUser(userid){

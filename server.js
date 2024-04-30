@@ -152,3 +152,15 @@ async function HandleGetContent(req,res){
     });
 
 }
+
+
+/*Handles returning a simple specified result message*/
+export async function HandleSimpleResultMessage(res, statusCode, message){
+    return new Promise(async (resolve,reject) => {
+        if (!res || !statusCode || !message){return reject("cant call on empty parms");}
+        
+        res.writeHead(statusCode);
+        res.end(message);
+        return resolve("completed handling simple result message");
+    });
+}
