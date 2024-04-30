@@ -50,10 +50,14 @@ export async function HandleAuthorizationLoginOnPost(req,res){
         
         // validate login
         const name = body.username;
-        const userID = await ValidateLogin(name, body.password).catch((err) => LogErrorMessage(err.message,err));
+        let userID_errorMessage;
+        const userID = await ValidateLogin(name, body.password).catch((err) =>
+        {
+            userID_errorMessage = err;
+            LogErrorMessage(err.message,err);});
         if (!userID){
-            await HandleSimpleResultMessage(res, 418, "Bad Login Info");
-            return reject("Bad Login Info");
+            await HandleSimpleResultMessage(res, 418, userID_errorMessage);
+            return reject("Login Failed");
         }
         
         // login is valid, expire old ones and generate a new one

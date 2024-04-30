@@ -41,13 +41,50 @@ export async function ValidateLogin(username, password){
         const query = `SELECT * FROM authentication.user WHERE name = ? LIMIT 1`
         const row = await dbcontext.promise().query(query, [username]);
         const data = row[0];
-        
-        if (data.length > 0 && await DoesDataMatchHash(password, data[0].passkey)){
-            // valid login
-            return resolve(data[0].id);
+        if (data.length > 0){
+            // user exists, check if user has attempts remaining
+            if (data[0].passwordAttemptsRemaining <= 0){
+                // no attempts remaining, lock account and reject
+                await LockUserAccount(data[0].id);
+                return reject("Too many login attempts, account locked. Contact admin");
+            }
+            
+            // user has attempts remaining, check if password is correct, if not down login attempts by 1 and reject
+            if (await DoesDataMatchHash(password, data[0].passkey)){
+                // correct login info, reset remaining attempts and resolve with id
+                await ResetLoginAttempts(data[0].id);
+                return resolve(data[0].id);
+            }
+            else{
+                // bad login info, down attempts and reject
+                await LowerLoginAttemptsByOne(data[0].id);
+                return reject("Password doesnt match");
+            }
         }
-        // invalid login
-        return resolve(undefined);
+        
+        // user doesnt exist
+        return reject("user doesnt exist");
+    });
+}
+
+/*Locks a users account by invalidating all auth tokens and setting account locked state to true
+* does not reject on non-existing user id in database*/
+async function LockUserAccount(userID){
+    return new Promise (async (resolve,reject) => {
+        if (!userID){
+            return reject("no user id provided");
+        }
+        
+        // expire all auth tokens
+        await ExpireAllAuthenticationTokensForUser(userID);
+        
+        // lock user account
+        const query = "UPDATE authentication.user SET locked = true WHERE id = ?;"
+        await dbcontext.promise().query(query, [userID]).catch((err) =>
+        LogErrorMessage(err.message, err));
+        
+        
+        return resolve("locked user account");
     });
 }
 
@@ -83,6 +120,45 @@ export async function ExpireAllAuthenticationTokensForUser(userid){
     });
 }
 
+/*Downs users login attempts by 1, only rejects on no userid provided not on failed db query*/
+async function LowerLoginAttemptsByOne(userID){
+    return new Promise (async (resolve,reject) => {
+        if (!userID){
+            return reject("no userid provided");
+        }
+        
+        // get login attempts, -1 them, set again
+        
+        const selectQuery = "SELECT passwordAttemptsRemaining FROM authentication.user WHERE id = ? LIMIT 1;";
+        const row = await dbcontext.promise().query(selectQuery, [userID])
+            .catch((err) => LogErrorMessage(err.message, err));
+        const data = row[0];
+        const attempts = data[0].passwordAttemptsRemaining
+        
+        const postQery = "UPDATE authentication.user SET passwordAttemptsRemaining = ? WHERE id = ?;"
+        await dbcontext.promise().query(postQery, [attempts-1, userID])
+            .catch((err) => LogErrorMessage(err.message, err));
+        
+        return resolve("Downed login attempts by 1");
+    });
+}
+
+/*Resets the Login Attempts for the provided userid, only rejects on no user id*/
+async function ResetLoginAttempts(userID){
+    return new Promise (async (resolve,reject) => {
+        if (!userID){
+            return reject("no userid provided");
+        }
+        
+        // reset to db default
+        const query = "UPDATE authentication.user SET passwordAttemptsRemaining=default WHERE id = ?;"
+        await dbcontext.promise().query(query, [userID])
+            .catch((err) => LogErrorMessage(err.message, err));
+        
+        return resolve("Reset Login Attempts for user");
+    });
+}
+
 /*Adds a log entry with the provided data, rejects if message or ip are empty and/or inserting into db fails*/
 export async function AddLogEntry(message, ip, userid_nullable, accessToken_nullable, accessType_nullable){
     return new Promise(async (resolve,reject) => {
@@ -110,8 +186,10 @@ export async function ValidateAuthToken(userid, token){
             return reject("userid and token cant be empty");
         }
         
-        const query = "SELECT token FROM authentication.accesstoken WHERE user = ? AND expired = ?"
-        const db_auth_token_row = await dbcontext.promise().query(query, [userid,false]).catch(
+        const query = "SELECT token FROM authentication.accesstoken " +
+            "INNER JOIN authentication.user ON user=user.id " +
+            "WHERE user = ? AND expired = ? AND locked = ?"
+        const db_auth_token_row = await dbcontext.promise().query(query, [userid,false,false]).catch(
             (err) => LogErrorMessage(err.message,err));
         const data = db_auth_token_row[0];
         
