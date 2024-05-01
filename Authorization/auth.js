@@ -10,6 +10,7 @@ import {
     ValidateLogin
 } from "../Database/db.js";
 import {HandleSimpleResultMessage} from "../server.js";
+import {HandleRateLimit} from "../RateLimiter/RateLimiter.js";
 
 const AllowedUnauthorizedQueryEndpoints = [
     "PostAuthorizationLogin"
@@ -42,6 +43,12 @@ export async function HandleAuthorizationOnRequest(req, res){
 /*Handles the authorization post request, returns reject on invalid credentials*/
 export async function HandleAuthorizationLoginOnPost(req,res){
     return new Promise(async (resolve,reject) => {
+        // apply strong late limiting due to db access and crypto function calling
+        if (await HandleRateLimit(req, res, 2)){
+            return resolve("Rate Limited");
+        }
+        
+        
         const body = await GetRequestBody(req);
         if (!body || !body.password || !body.username){
             await HandleSimpleResultMessage(res, 418, "Bad Request");
@@ -77,6 +84,11 @@ export async function HandleAuthorizationLoginOnPost(req,res){
 /*Handles the post request for user logout, only works if user login info is correct in auth cookie to prevent abuse*/
 export async function HandleLogoutUserOnPost(req,res){
     return new Promise (async (resolve,reject) => {
+        // apply strong late limiting due to db access and crypto function calling
+        if (await HandleRateLimit(req, res, 2)){
+            return resolve("Rate Limited");
+        }
+        
         // get user id from auth cookie
         const cookies = await GetParsedCookies(req.headers.cookie);
         if (!cookies || !cookies.userID || !cookies.Authorization){

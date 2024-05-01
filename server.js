@@ -6,6 +6,7 @@ import {HandleGetFile, HandleNotFound, HandleUnauthorized} from "./server_reques
 import {HandleGetDirectoryNavigator} from "./server_requestHandlers/DirectoryHandlers.js";
 import {LogDebugMessage, LogErrorMessage} from "./logger.js";
 import {HandleAuthorizationOnRequest} from "./Authorization/auth.js";
+import {HandleRateLimit} from "./RateLimiter/RateLimiter.js";
 
 /*Starts the node server*/
 export async function StartServer (){
@@ -21,7 +22,11 @@ export async function StartServer (){
 async function on_ServerRequest(req, res){
     LogDebugMessage(`Got Request ${req.method} ${req.url}`);
     
-    // TODO : ADD RATE LIMITING OVER IP ADDRESS
+    // apply rate limiting
+    if (await HandleRateLimit(req, res, 0)){
+        // rate limited
+        return;
+    }
     
     // Handle authentication, return if authentication fails
     const access = await HandleAuthorizationOnRequest(req, res).catch(
@@ -37,7 +42,6 @@ async function on_ServerRequest(req, res){
     req.accessLevel = access.accessLevel;
     req.userID = access.userID;
     
-    // TODO : ADD RATE LIMITING OVER USER ID
     // TODO : ADD SOME SORT OF MAX PACKAGE SIZE
     
     // Handle A Query Request if the request is a query request, example : /POST/ /GET/
