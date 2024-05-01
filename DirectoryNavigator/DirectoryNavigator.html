@@ -7,6 +7,10 @@
     <title>Directory Navigator</title>
 </head>
 <body>
+<nav class="nav justify-content-end m-2">
+    <a class="nav-item btn btn-light m-1" type="button" href="/GET/GetUploadPage">Upload</a>
+    <a class="nav-item btn btn-light m-1" type="button" onclick="PostLogoutUser()">Logout</a>
+</nav>
 <div class="container d-flex">
     <table class="table col-10" id="MainContainer">
         <thead>
@@ -23,9 +27,6 @@
         </tr>
         </thead>
     </table>
-    <div class="d-flex align-items-center m-2">
-        <a class="btn btn-light" type="button" href="/GET/GetUploadPage">Upload</a>
-    </div>
 </div>
 
 <!--auth script-->
@@ -53,6 +54,22 @@
             document.body.textContent = "Bad Server Response, aborting...";
         }
     });
+
+
+    /*Logout function*/
+    async function PostLogoutUser(){
+        const response = await fetch( window.location.origin + "/POST" + "/PostLogoutUser", {
+            method : "POST",
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        });
+
+        console.log(response);
+
+        // always reload and ignore response to maybe fix server side errors on reload if any accur
+        window.location.reload();
+    }
 </script>
 
 <!--link generator script-->

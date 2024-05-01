@@ -74,7 +74,30 @@ export async function HandleAuthorizationLoginOnPost(req,res){
     });
 }
 
+/*Handles the post request for user logout, only works if user login info is correct in auth cookie to prevent abuse*/
+export async function HandleLogoutUserOnPost(req,res){
+    return new Promise (async (resolve,reject) => {
+        // get user id from auth cookie
+        const cookies = await GetParsedCookies(req.headers.cookie);
+        if (!cookies || !cookies.userID || !cookies.Authorization){
+            await HandleSimpleResultMessage(res, 400, "bad request");
+            return reject("failed to get parts of auth cookie");
+        }
 
+        // attempt to logout user by first validating auth then logging him out
+        if (await ValidateAuthToken(cookies.userID, cookies.Authorization)){
+            const response_message = await LogoutUser(cookies.userID).catch((err) => LogErrorMessage(err.message,err));
+            if (!response_message){
+                await HandleSimpleResultMessage(res, 500, "Internal server error");
+                return reject("Failed to logout user");
+            }
+        }
+        
+        // nothing failed so logout shouldve worked
+        await HandleSimpleResultMessage(res, 200, "User Logout Success");
+        return resolve("successfully logged out user");
+    });
+}
 
 /*Logs the user with the given id out of all if any active sessions by invalidatiing the tokens he owns*/
 export async function LogoutUser(userid){

@@ -3,7 +3,7 @@
 import {HandleGetDirectoryStructure} from "./GETEndpoints/GetDirectoryStructure.js";
 import {LogErrorMessage} from "../logger.js";
 import {HandleNotFound} from "./FileHandlers.js";
-import {HandleAuthorizationLoginOnPost} from "../Authorization/auth.js";
+import {HandleAuthorizationLoginOnPost, HandleLogoutUserOnPost} from "../Authorization/auth.js";
 import {HandleGetUploadPage} from "./GETEndpoints/GetUploadPage.js";
 
 /*The Allowed Query Url entry points, example : /GET/ /POST/, ...*/
@@ -16,6 +16,7 @@ const ValidQueryUrlEntryPoints = [
 const QueryEndpoints = {
     GetDirectoryStructure : HandleGetDirectoryStructure,
     PostAuthorizationLogin : HandleAuthorizationLoginOnPost,
+    PostLogoutUser : HandleLogoutUserOnPost,
     GetUploadPage : HandleGetUploadPage
 }
 
