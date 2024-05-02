@@ -88,7 +88,7 @@
             margin-inline-start: 20px;
         }
         .dir::before ,
-        .file > img {
+        .file::before{
             margin-inline-end: 4px;
             margin-inline-start: -20px;
             max-width: 16px;
@@ -97,6 +97,9 @@
         }
         .dir::before {
             content: url(/GET/GetPublicResource?val=DirectoryNavigatorResources/folder.png);
+        }
+        .file::before{
+            content: url(/GET/GetPublicResource?val=DirectoryNavigatorResources/file.png);
         }
         .button {
             display: inline-block;
@@ -218,10 +221,6 @@
         }
         else{
             nameCell.className="file";
-            let img = document.createElement("img");
-            img.src = "/GET/GetPublicResource?val=DirectoryNavigatorResources/file.png";
-            img.alt = "file : "
-            nameCell.prepend(img);
         }
         row.appendChild(nameCell);
 
