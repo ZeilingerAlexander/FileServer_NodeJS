@@ -171,7 +171,6 @@
             let body = await response.json();
             for (const i in body) {
                 const link = body[i];
-                console.log(link);
                 GenerateLink(link.name, link.Directory, link.size, link.lastModified);
             }
         }
@@ -205,8 +204,6 @@
         const fullPath = ((window.location.pathname.endsWith("/") || window.location.pathname.endsWith("\\")) ? window.location.pathname 
             : (window.location.pathname + "/")) + name
         
-        console.log(fullPath);
-        
         const tbody = document.getElementById("MainContainer");
         const row = document.createElement("tr");
 
@@ -229,7 +226,7 @@
         row.appendChild(nameCell);
 
         const sizeCell = document.createElement("td");
-        sizeCell.textContent = size;
+        sizeCell.textContent = isDirectory ? "" : size;
         sizeCell.setAttribute("data-size", size);
         row.appendChild(sizeCell);
 
