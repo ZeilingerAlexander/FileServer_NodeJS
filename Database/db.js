@@ -196,27 +196,27 @@ export async function ValidateAuthToken(userid, token){
             (err) => LogErrorMessage(err.message,err));
         const data = db_auth_token_row[0];
         
-        if (data.length > 0 && data[0].token)
-        {
-            // Check if cached data includes the token
-            if (CachedAuthTokens.has(token)){
-                // Check if cached value matches the one of db
-                if ((CachedAuthTokens.get(token) === data[0].token)){
-                    // matches so we can assume that db value didnt change since its not expired from above query
-                    return resolve(true);
-                }
-                else{
-                    // doesnt match so remove from cached tokens
-                    CachedAuthTokens.delete(token);
-                }
+        if (data.length === 0 || !data[0].token){
+            return resolve(false);
+        }
+        // Check if cached data includes the token
+        if (CachedAuthTokens.has(token)){
+            // Check if cached value matches the one of db
+            if ((CachedAuthTokens.get(token) === data[0].token)){
+                // matches so we can assume that db value didnt change since its not expired from above query
+                return resolve(true);
             }
             else{
-                // cached values dosnt include token yet so cache it
-                CachedAuthTokens.set(token, data[0].token);
+                // doesnt match so remove from cached tokens
+                CachedAuthTokens.delete(token);
             }
         }
-        
-        if (data.length > 0 && await DoesDataMatchHash(token, data[0].token)){
+        else{
+            // cached values dosnt include token yet so cache it
+            CachedAuthTokens.set(token, data[0].token);
+        }
+            
+        if (await DoesDataMatchHash(token, data[0].token)){
             return resolve(true);
         }
         return resolve(false);
