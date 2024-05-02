@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" media="screen, projection" type="text/css" href="chrome://global/skin/dirListing/dirListing.css">
+    <link rel="stylesheet" media="screen, projection" type="text/css" href="http://127.0.0.1:8000/GET/GetPublicResource?val=DirectoryNavigatorResources/dirListing.css">
     <style type="text/css">
         :root {
             font-family: sans-serif;
@@ -95,7 +95,7 @@
             vertical-align: middle;
         }
         .dir::before {
-            content: url(resource://content-accessible/html/folder.png);
+            content: url(http://127.0.0.1:8000/GET/GetPublicResource?val=DirectoryNavigatorResources/folder.png);
         }
         .button {
             display: inline-block;
@@ -210,6 +210,9 @@
         nameLink.href = isDirectory ? '/' + name : '/' + name;
         nameCell.setAttribute("data-name", name);
         nameCell.appendChild(nameLink);
+        if (isDirectory){
+            nameCell.className="dir";
+        }
         row.appendChild(nameCell);
 
         const sizeCell = document.createElement("td");
