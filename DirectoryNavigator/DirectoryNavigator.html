@@ -113,6 +113,9 @@
             display: flex;
             justify-content: flex-end;
         }
+        .searchbar{
+            width: 100%;
+        }
 
     </style>
     <meta charset="UTF-8">
@@ -121,6 +124,9 @@
 <body>
 <nav>
     <div class="buttons">
+        <!--Search-->
+        <input type="search" id="site-search" class="searchbar" placeholder="Search" oninput="onSearchBarKeyRecieved()">
+
         <a class="button" type="button" href="/GET/GetUploadPage" style="background-color: white; color: black">Upload</a>
         <a class="button" type="button" onclick="PostLogoutUser()" style="background-color: lightskyblue; color: black">Logout</a>
     </div>
@@ -243,8 +249,8 @@
         const sortFactor = isAsc ? 1 : -1;
 
         rows.sort((rowA, rowB) => {
-            const valueA = getValue(rowA, sortBy);
-            const valueB = getValue(rowB, sortBy);
+            const valueA = getRowValue(rowA, sortBy);
+            const valueB = getRowValue(rowB, sortBy);
 
             if (valueA < valueB) return -1 * sortFactor;
             if (valueA > valueB) return 1 * sortFactor;
@@ -256,9 +262,46 @@
         });
     }
 
-    function getValue(row, sortBy) {
+    function getRowValue(row, sortBy) {
         const cell = row.querySelector(`[data-${sortBy}]`);
         return cell ? cell.dataset[sortBy] : '';
+    }
+</script>
+
+<!--Search Script-->
+<script>
+    const searchBarRef = document.getElementById("site-search");
+    async function onSearchBarKeyRecieved(){
+        await search(searchBarRef.value);
+    }
+    
+    /*applies the serach with specified query*/
+    async function search(query){
+        return new Promise(async (resolve) => {
+            const table = document.querySelector('table');
+            const tbody = table.querySelector('tbody');
+            let rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            rows = rows.filter((row) => {
+                return getRowValue(row, "name").toLowerCase().includes(query.toLowerCase());
+            });
+            
+            // hide all elements
+            const allRows = Array.from(tbody.querySelectorAll('tr'));
+            for (let rowkey in allRows) {
+                let row = allRows[rowkey];
+                row.style.visibility = "hidden";
+                row.style.display = "none"
+            }
+            
+            // un-hide all filtered elments
+            rows.forEach(row => {
+                row.style.visibility = "visible";
+                row.style.display = "";
+            });
+            
+            return resolve("done");
+        });
     }
 </script>
 </body>
