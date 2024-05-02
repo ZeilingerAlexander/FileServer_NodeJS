@@ -202,14 +202,18 @@
 
     /*Generates a new table row element*/
     function GenerateLink(name, isDirectory, size, modified) {
+        const fullPath = ((window.location.pathname.endsWith("/") || window.location.pathname.endsWith("\\")) ? window.location.pathname 
+            : (window.location.pathname + "/")) + name
+        
+        console.log(fullPath);
+        
         const tbody = document.getElementById("MainContainer");
-
         const row = document.createElement("tr");
 
         const nameCell = document.createElement("td");
         const nameLink = document.createElement("a");
         nameLink.textContent = name;
-        nameLink.href = isDirectory ? '/' + name : '/' + name;
+        nameLink.href = fullPath;
         nameCell.setAttribute("data-name", name);
         nameCell.appendChild(nameLink);
         if (isDirectory){
