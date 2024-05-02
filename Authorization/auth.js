@@ -13,7 +13,8 @@ import {HandleSimpleResultMessage} from "../server.js";
 import {HandleRateLimit} from "../RateLimiter/RateLimiter.js";
 
 const AllowedUnauthorizedQueryEndpoints = [
-    "PostAuthorizationLogin"
+    "PostAuthorizationLogin",
+    "GetPublicResource"
 ]
 
 

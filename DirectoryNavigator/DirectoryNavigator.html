@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" media="screen, projection" type="text/css" href="http://127.0.0.1:8000/GET/GetPublicResource?val=DirectoryNavigatorResources/dirListing.css">
+    <link rel="stylesheet" media="screen, projection" type="text/css" href="/GET/GetPublicResource?val=DirectoryNavigatorResources/dirListing.css">
     <style type="text/css">
         :root {
             font-family: sans-serif;
+            background-color: Field;
         }
         img {
             border: 0;
@@ -95,7 +96,7 @@
             vertical-align: middle;
         }
         .dir::before {
-            content: url(http://127.0.0.1:8000/GET/GetPublicResource?val=DirectoryNavigatorResources/folder.png);
+            content: url(/GET/GetPublicResource?val=DirectoryNavigatorResources/folder.png);
         }
         .button {
             display: inline-block;
@@ -115,6 +116,7 @@
         }
         .searchbar{
             width: 100%;
+            margin: 5px;
         }
 
     </style>
@@ -136,13 +138,13 @@
         <thead>
         <tr>
             <th class="sortable" data-sort="name">
-                <p>Name</p>
+                <label>Name</label>
             </th>
             <th class="sortable" data-sort="size">
-                <p>Size</p>
+                <label>Size</label>
             </th>
             <th colspan="2" class="sortable" data-sort="modified">
-                <p>Last Modified</p>
+                <label>Last Modified</label>
             </th>
         </tr>
         </thead>
@@ -212,6 +214,13 @@
         nameCell.appendChild(nameLink);
         if (isDirectory){
             nameCell.className="dir";
+        }
+        else{
+            nameCell.className="file";
+            let img = document.createElement("img");
+            img.src = "/GET/GetPublicResource?val=DirectoryNavigatorResources/file.png";
+            img.alt = "file : "
+            nameCell.prepend(img);
         }
         row.appendChild(nameCell);
 
