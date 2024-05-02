@@ -1,31 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    
+    <link rel="stylesheet" media="screen, projection" type="text/css" href="chrome://global/skin/dirListing/dirListing.css">
+    <style type="text/css">
+        :root {
+            font-family: sans-serif;
+        }
+        img {
+            border: 0;
+        }
+        th {
+            text-align: start;
+            white-space: nowrap;
+        }
+        th > a {
+            color: inherit;
+        }
+        table[order] > thead > tr > th {
+            cursor: pointer;
+        }
+        table[order] > thead > tr > th::after {
+            display: none;
+            width: .8em;
+            margin-inline-end: -.8em;
+            text-align: end;
+        }
+        table[order="asc"] > thead > tr > th::after {
+            content: "\2193"; /* DOWNWARDS ARROW (U+2193) */
+        }
+        table[order="desc"] > thead > tr > th::after {
+            content: "\2191"; /* UPWARDS ARROW (U+2191) */
+        }
+        table[order][order-by="0"] > thead > tr > th:first-child > a ,
+        table[order][order-by="1"] > thead > tr > th:first-child + th > a ,
+        table[order][order-by="2"] > thead > tr > th:first-child + th + th > a {
+            text-decoration: underline;
+        }
+        table[order][order-by="0"] > thead > tr > th:first-child::after ,
+        table[order][order-by="1"] > thead > tr > th:first-child + th::after ,
+        table[order][order-by="2"] > thead > tr > th:first-child + th + th::after {
+            display: inline-block;
+        }
+        table.remove-hidden > tbody > tr.hidden-object {
+            display: none;
+        }
+        td {
+            white-space: nowrap;
+        }
+        table.ellipsis {
+            width: 100%;
+            table-layout: fixed;
+            border-spacing: 0;
+        }
+        table.ellipsis > tbody > tr > td {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* name */
+        /* name */
+        th:first-child {
+            padding-inline-end: 2em;
+        }
+        /* size */
+        th:first-child + th {
+            padding-inline-end: 1em;
+        }
+        td:first-child + td {
+            text-align: end;
+            padding-inline-end: 1em;
+        }
+        /* date */
+        td:first-child + td + td {
+            padding-inline-start: 1em;
+            padding-inline-end: .5em;
+        }
+        /* time */
+        td:first-child + td + td + td {
+            padding-inline-start: .5em;
+        }
+        .symlink {
+            font-style: italic;
+        }
+        .dir ,
+        .symlink ,
+        .file {
+            margin-inline-start: 20px;
+        }
+        .dir::before ,
+        .file > img {
+            margin-inline-end: 4px;
+            margin-inline-start: -20px;
+            max-width: 16px;
+            max-height: 16px;
+            vertical-align: middle;
+        }
+        .dir::before {
+            content: url(resource://content-accessible/html/folder.png);
+        }
+        .button {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .buttons {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+    </style>
     <meta charset="UTF-8">
     <title>Directory Navigator</title>
 </head>
 <body>
-<nav class="nav justify-content-end m-2">
-    <a class="nav-item btn btn-light m-1" type="button" href="/GET/GetUploadPage">Upload</a>
-    <a class="nav-item btn btn-light m-1" type="button" onclick="PostLogoutUser()">Logout</a>
+<nav>
+    <div class="buttons">
+        <a class="button" type="button" href="/GET/GetUploadPage" style="background-color: white; color: black">Upload</a>
+        <a class="button" type="button" onclick="PostLogoutUser()" style="background-color: lightskyblue; color: black">Logout</a>
+    </div>
 </nav>
-<div class="container d-flex">
-    <table class="table col-10" id="MainContainer">
+<div>
+    <table>
         <thead>
         <tr>
-            <th>
+            <th class="sortable" data-sort="name">
                 <p>Name</p>
             </th>
-            <th>
+            <th class="sortable" data-sort="size">
                 <p>Size</p>
             </th>
-            <th colspan="2">
+            <th colspan="2" class="sortable" data-sort="modified">
                 <p>Last Modified</p>
             </th>
         </tr>
         </thead>
+        <tbody id="MainContainer">
+        
+        </tbody>
     </table>
 </div>
 
@@ -47,7 +164,7 @@
             for (const i in body) {
                 const link = body[i];
                 console.log(link);
-                GenerateLink(link.name, link.Directory);
+                GenerateLink(link.name, link.Directory, link.size, link.lastModified);
             }
         }
         else {
@@ -74,18 +191,75 @@
 
 <!--link generator script-->
 <script>
-    /*Generates a new link element either linking to a directory or file*/
-    function GenerateLink(path, isDirectory) {
-        const linkElement = document.createElement("a");
-        const fullPath = (origin.endsWith("/") || origin.endsWith("\\")) ? origin : (origin + "/") + pathname + "/" + path
-        linkElement.textContent = (isDirectory ? "Directory | " : " " )+ path;
-        linkElement.href = fullPath;
-        MainContainerRef.appendChild(linkElement);
+
+    /*Generates a new table row element*/
+    function GenerateLink(name, isDirectory, size, modified) {
+        const tbody = document.getElementById("MainContainer");
+
+        const row = document.createElement("tr");
+
+        const nameCell = document.createElement("td");
+        const nameLink = document.createElement("a");
+        nameLink.textContent = name;
+        nameLink.href = isDirectory ? '/' + name : '/' + name;
+        nameCell.setAttribute("data-name", name);
+        nameCell.appendChild(nameLink);
+        row.appendChild(nameCell);
+
+        const sizeCell = document.createElement("td");
+        sizeCell.textContent = size;
+        sizeCell.setAttribute("data-size", size);
+        row.appendChild(sizeCell);
+
+        const modifiedCell = document.createElement("td");
+        let date = new Date(modified);
+        modifiedCell.textContent = `${date.getDay()}.${date.getMonth()}.${date.getFullYear()} | ${date.getHours()}h ${date.getMinutes()}m`;
+        modifiedCell.setAttribute("data-modified", modified);
+        row.appendChild(modifiedCell);
+
+        tbody.appendChild(row);
     }
+
+
 </script>
 
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<!--Sort script-->
+<script>
+    const headers = document.querySelectorAll('.sortable');
+
+    headers.forEach(header => {
+        header.addEventListener('click', () => {
+            const sortBy = header.dataset.sort;
+            const isAsc = header.classList.toggle('asc');
+            sortTable(sortBy, isAsc);
+        });
+    });
+
+    function sortTable(sortBy, isAsc) {
+        const table = document.querySelector('table');
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        const sortFactor = isAsc ? 1 : -1;
+
+        rows.sort((rowA, rowB) => {
+            const valueA = getValue(rowA, sortBy);
+            const valueB = getValue(rowB, sortBy);
+
+            if (valueA < valueB) return -1 * sortFactor;
+            if (valueA > valueB) return 1 * sortFactor;
+            return 0;
+        });
+
+        rows.forEach(row => {
+            tbody.appendChild(row);
+        });
+    }
+
+    function getValue(row, sortBy) {
+        const cell = row.querySelector(`[data-${sortBy}]`);
+        return cell ? cell.dataset[sortBy] : '';
+    }
+</script>
 </body>
 </html>
