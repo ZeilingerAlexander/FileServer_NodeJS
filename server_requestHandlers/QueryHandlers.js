@@ -5,6 +5,7 @@ import {LogErrorMessage} from "../logger.js";
 import {HandleNotFound} from "./FileHandlers.js";
 import {HandleAuthorizationLoginOnPost, HandleLogoutUserOnPost} from "../Authorization/auth.js";
 import {HandleGetUploadPage} from "./GETEndpoints/GetUploadPage.js";
+import {HandleGetPublicResource} from "./GETEndpoints/GetPublicResource.js";
 
 /*The Allowed Query Url entry points, example : /GET/ /POST/, ...*/
 const ValidQueryUrlEntryPoints = [
@@ -17,7 +18,8 @@ const QueryEndpoints = {
     GetDirectoryStructure : HandleGetDirectoryStructure,
     PostAuthorizationLogin : HandleAuthorizationLoginOnPost,
     PostLogoutUser : HandleLogoutUserOnPost,
-    GetUploadPage : HandleGetUploadPage
+    GetUploadPage : HandleGetUploadPage,
+    GetPublicResource : HandleGetPublicResource
 }
 
 /*Handles a Query endpoint defined under QueryEndpoints, returns 404 if not found*/
