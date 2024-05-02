@@ -95,13 +95,24 @@ export async function CheckIFPathExists(path){
 
 
 /*Gets the relative user path from the base request by combining the base request path with the user path and the userid
-* then validates it by checking if the new combined path starts with /[env.user]/[userId], rejects if the new path lies outside the bounds of the user path*/
+* then validates it by checking if the new combined path starts with /[env.user]/[userId], rejects if the new path lies outside the bounds of the user path
+* Also Automaticly creates the user directory if it doesnt exist and the directory for that id*/
 export async function GetValidatedUserRelativePathFromRequestPath(url, userID){
     return new Promise (async (resolve,reject) => {
         const fullPath = path.join(process.env.USERDIRECTORY_RELATIVEPATH.toString(),userID.toString(),url.toString());
         const expectedPathStart = path.join(process.env.USERDIRECTORY_RELATIVEPATH.toString(),userID.toString());
         
         if (fullPath.startsWith(expectedPathStart)){
+            const userDirectoryPath = path.join(process.env.STATIC_PATH, process.env.USERDIRECTORY_RELATIVEPATH.toString());
+            const userIdDirectoryPath = path.join(process.env.STATIC_PATH, expectedPathStart);
+            
+            if (!await CheckIFPathExists(userDirectoryPath)){
+                await fsp.mkdir(userDirectoryPath);
+            }
+            if (! await CheckIFPathExists(userIdDirectoryPath)){
+                await fsp.mkdir(userIdDirectoryPath);
+            }
+            
             return resolve(fullPath);
         }
         return reject("Failed to validate the full combined path for user directory");
