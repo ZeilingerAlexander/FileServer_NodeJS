@@ -5,6 +5,7 @@ import {LogDebugMessage, LogErrorMessage} from "./logger.js";
 import * as bcrypt from "bcrypt";
 import {reject} from "bcrypt/promises.js";
 import {HandleSimpleResultMessage} from "./server.js";
+import {MIME_TYPES} from "./variables/mimeTypes.js";
 
 // ...
 
@@ -276,5 +277,127 @@ export async function GetSingleURLParameter_ReturnBadRequestIfNotFound(req,res,p
         }
         
         return resolve(url_param);
+    });
+}
+
+
+/*Gets the directory size of the provided directory path, never rejects*/
+export async function GetImportantDirectoryInfo_Size_LastModifierz(directory_path){
+    return new Promise (async (resolve) => {
+        let totalSize = 0;
+        let latestModified = 0;
+        const dir = await fsp.readdir(directory_path).catch((err) => LogErrorMessage(err.message,err));
+        // ignore errors to no overcomplicate things
+        if (!dir){return resolve({size : 0, lastModified : 0});}
+        
+        // TODO : Refactor this hellish landscape
+        
+        // iterate through dir and add file / directory size to total size
+        for (let i in dir){
+            const entry = dir[i];
+            const entryPath = path.join(directory_path, entry);
+            const fileStats = await fsp.lstat(entryPath).catch((err) => LogErrorMessage(err.message,err));
+            // ignore errors on purpose to not overcomplicate things
+            if (fileStats){
+                if (fileStats.isDirectory()){
+                    // recursively re-call if directory
+                    const directory_info = await GetImportantDirectoryInfo_Size_LastModifierz(entryPath).catch((err) => LogErrorMessage(err.message,err));
+                    const directory_size = directory_info.size;
+                    
+                    // check if last modified greater
+                    if (directory_info.lastModified > latestModified){
+                        latestModified = directory_info.lastModified;
+                    }
+                    
+                    if (directory_size){
+                        totalSize = totalSize + directory_size
+                    }
+                }
+                else{
+                    // not directory so its file get size from this
+                    totalSize = totalSize + fileStats.size ? fileStats.size : 0;
+
+                    // check if last modified greater
+                    if (fileStats.mtimeMs > latestModified){
+                        latestModified = fileStats.mtimeMs;
+                    }
+                }
+            }
+        }
+        return resolve({size : totalSize, lastModified : latestModified});
+    });
+}
+
+/*Gets filestats for the provided path*/
+export async function GetFileStats(content_path){
+    return new Promise (async (resolve,reject) => {
+        const fileStats = await fsp.lstat(content_path).catch((err) => LogErrorMessage(err.message,err));
+        if (!fileStats){
+            return reject("failed to get filestats");
+        }
+        return resolve(fileStats);
+    });
+}
+
+/*Gets the Directory Structure, rejects on failure*/
+export async function GetDirectoryStructure(dir_path){
+    return new Promise (async (resolve,reject) => {
+        const dir = await fsp.readdir(dir_path).catch(
+            (err) => LogErrorMessage(err.message, err)
+        );
+        if (!dir){
+            return reject("Failed to read directory");
+        }
+        
+        // normalize directory path to allow for adding entries to the end
+        const normalizedDirectoryPath = (dir_path.endsWith("/") || dir_path.endsWith("\\"))
+            ? dir_path : (dir_path + "/");
+
+        // build the directory with proper types (directory/file)
+        let DirectoryStructure = [];
+        for (const i in dir) {
+            const directoryEntry = dir[i];
+            const FullEntryPath = normalizedDirectoryPath + directoryEntry;
+            const fileStats = await fsp.lstat(FullEntryPath).catch(
+                (err) => LogErrorMessage(err.message,err)
+            );
+
+            if (!fileStats){
+                continue;
+            }
+            
+            // check if is directory
+            const isDirectory = fileStats && fileStats.isDirectory() && !fileStats.isFile();
+
+            // push to directory structure
+            DirectoryStructure.push(
+                {
+                    name : directoryEntry,
+                    Directory : isDirectory,
+                    size : fileStats.size,
+                    lastModified : fileStats.mtimeMs,
+                    creationTime : fileStats.birthtimeMs
+                }
+            );
+        }
+        
+        return resolve(DirectoryStructure);
+    });
+}
+
+/*Creates a folder with the provided path*/
+export async function CreateDirectory(dir_path){
+    await fsp.mkdir(dir_path).catch((err) => LogErrorMessage(err.message,err));
+}
+
+/*Removes the provided path if it points to a file never rejects*/
+export async function RemoveFile(file_path){
+    return new Promise (async (resolve) => {
+        if (await CheckIFPathExists(file_path).catch((err) => LogErrorMessage(err.message,err)) && 
+                await IsPathFile(file_path).catch((err) => LogErrorMessage(err.message,err))){
+            
+            await fsp.unlink(file_path).catch((err) => LogErrorMessage(err.message,err));
+        }
+        return resolve("finished unlinking");
     });
 }
