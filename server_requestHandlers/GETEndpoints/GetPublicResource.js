@@ -1,7 +1,7 @@
 /*Handles The Get Public Resource Request*/
 import {
     CheckIFPathExists,
-    GetFullPathFromRelativePath,
+    GetFullPathFromRelativePath, GetSingleURLParameter_ReturnBadRequestIfNotFound,
     GetUrlParameters,
     IsPathDirectory
 } from "../../InputValidator.js";
@@ -11,19 +11,10 @@ import {HandleSimpleResultMessage} from "../../server.js";
 
 export async function HandleGetPublicResource(req,res){
     return new Promise (async (resolve,reject) => {
-        const urlParams = await GetUrlParameters(req.url).catch(
-            (err) => LogErrorMessage(err.message, err)
-        );
-        if (!urlParams){
-            await HandleSimpleResultMessage(res, 405, "Bad URL Parameters");
-            return reject("Failed to get url parameters");
-        }
-
-        // get the val entry of url paramaters since thats where directory location resides
-        let dirLocation = urlParams["val"];
-        if (!dirLocation) {
-            await HandleSimpleResultMessage(res, 405, "Bad URL Parameters");
-            return reject("Url Paramter val not found, cant get directory location");
+        let dirLocation = await GetSingleURLParameter_ReturnBadRequestIfNotFound(req, res, "val").catch(
+            (err) => LogErrorMessage(err.message,err));
+        if (!dirLocation){
+            return reject("Failed to get directory location from url params");
         }
         
         const PublicResourcesStaticPath = GetFullPathFromRelativePath(process.env.PUBLICRESOURCES_RELATIVEPATH.toString());

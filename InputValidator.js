@@ -4,6 +4,7 @@ import {AllowedDirectories} from "./variables/AllowedDirectories.js";
 import {LogDebugMessage, LogErrorMessage} from "./logger.js";
 import * as bcrypt from "bcrypt";
 import {reject} from "bcrypt/promises.js";
+import {HandleSimpleResultMessage} from "./server.js";
 
 // ...
 
@@ -252,5 +253,28 @@ export async function DoesDataMatchHash(data, hash){
         if (!data || !hash){
             return reject("data and hash cant be empty")}
         return resolve(await bcrypt.compare(data, hash));
+    });
+}
+
+
+/*Gets a single url parameter by name, returns a bda request error if not found and rejects*/
+export async function GetSingleURLParameter_ReturnBadRequestIfNotFound(req,res,parameter_name){
+    return new Promise (async (resolve,reject) => {
+        const urlParams = await GetUrlParameters(req.url).catch(
+            (err) => LogErrorMessage(err.message, err)
+        );
+        if (!urlParams){
+            await HandleSimpleResultMessage(res, 405, "Bad URL Parameters");
+            return reject("Failed to get url parameters");
+        }
+
+        // get the entry of the url parameters
+        let url_param = urlParams[parameter_name];
+        if (!url_param) {
+            await HandleSimpleResultMessage(res, 405, "Bad URL Parameters");
+            return reject("Url Paramter val not found");
+        }
+        
+        return resolve(url_param);
     });
 }
