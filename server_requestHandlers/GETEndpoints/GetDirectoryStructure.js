@@ -1,7 +1,7 @@
 // /GET/GetDirectoryStructure
 import {
     CheckIFPathExists,
-    CheckIfPathIsAllowed,
+    CheckIfPathIsAllowed, GetDirectoryStructure,
     GetFullPathFromRelativePath,
     GetUrlParameters, GetValidatedUserRelativePathFromRequestPath, IsPathDirectory
 } from "../../InputValidator.js";
@@ -45,43 +45,10 @@ export async function HandleGetDirectoryStructure(req, res){
         }
         
         // read directory
-        const dir = await fsp.readdir(fullDirLocation).catch(
-            (err) => LogErrorMessage(err.message, err)
-        );
-        if (!dir){
-            return reject("Failed to read directory");
-        }
+        const DirectoryStructure = await GetDirectoryStructure(fullDirLocation);
         
         // write correct json head
         res.writeHead(200, {"Content-Type": MIME_TYPES.json});
-
-        // normalize directory path to allow for adding entries to the end
-        const normalizedDirectoryPath = (fullDirLocation.endsWith("/") || fullDirLocation.endsWith("\\"))
-            ? fullDirLocation : (fullDirLocation + "/");
-        
-        // build the directory with proper types (directory/file)
-        let DirectoryStructure = [];
-        for (const i in dir) {
-            const directoryEntry = dir[i];
-            const FullEntryPath = normalizedDirectoryPath + directoryEntry;
-            const fileStats = await fsp.lstat(FullEntryPath).catch(
-                (err) => LogErrorMessage(err.message,err)
-            );
-            
-            // check if is directory
-            const isDirectory = fileStats && fileStats.isDirectory() && !fileStats.isFile();
-            
-            // push to directory structure
-            DirectoryStructure.push(
-                {
-                    name : directoryEntry, 
-                    Directory : isDirectory,
-                    size : fileStats.size,
-                    lastModified : fileStats.mtimeMs,
-                    creationTime : fileStats.birthtimeMs
-                }
-            );
-        }
 
         // Write content as json
         const jsonContent = JSON.stringify(DirectoryStructure);
