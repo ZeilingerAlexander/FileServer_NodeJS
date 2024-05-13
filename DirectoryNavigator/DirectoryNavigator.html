@@ -148,8 +148,8 @@
     <div class="buttons">
         <!--Search-->
         <input type="search" id="site-search" class="searchbar" placeholder="Search" oninput="onSearchBarKeyRecieved()">
-
-        <a class="button" type="button" href="/GET/GetUploadPage" style="background-color: white; color: black">Upload</a>
+        
+        <a class="button hidden_for_mobile" type="button" href="/GET/GetUploadPage" style="background-color: white; color: black">Upload</a>
         <a class="button" type="button" onclick="PostLogoutUser()" style="background-color: lightskyblue; color: black">Logout</a>
     </div>
 </nav>
@@ -284,18 +284,23 @@
         row.appendChild(modifiedCell);
         //#endregion
         //#region Download Cell
-        if (!isDirectory){
-            const donwloadCell = document.createElement("td");
-            const downloadLink = document.createElement("a");
-            downloadLink.textContent = "⇲";
-            downloadLink.onclick = on_downloadClicked;
-            downloadLink.setAttribute("DownloadPath", fullPath);
-            downloadLink.setAttribute("DownloadName", name);
-            downloadLink.className = "downloadButton";
-            downloadLink.title = "Download";
-            donwloadCell.appendChild(downloadLink);
-            row.appendChild(donwloadCell);
+        const donwloadCell = document.createElement("td");
+        const downloadLink = document.createElement("a");
+        downloadLink.textContent = "⇲";
+        downloadLink.onclick = on_downloadClicked;
+        downloadLink.setAttribute("DownloadName", name);
+        downloadLink.setAttribute("DownloadPath", fullPath);
+
+        downloadLink.className = "downloadButton";
+        downloadLink.title = "Download";
+        // if directory call to get zipped file instead by setting the attribute is directory
+        if (isDirectory){
+            downloadLink.style.backgroundColor = "orange";
+            downloadLink.setAttribute("download_isDirectory", "true");
         }
+        donwloadCell.appendChild(downloadLink);
+        row.appendChild(donwloadCell);
+        
         //#endregion
         
         tbody.appendChild(row);
@@ -310,6 +315,7 @@
         return new Promise (async (resolve,reject) => {
             const download_path = this.getAttribute("DownloadPath");
             const download_name = this.getAttribute("DownloadName");
+            const isDirectory = !!this.getAttribute("download_isDirectory");
             
             // if path not found disable button to deter user from attempting further clicks
             if (!download_path || !download_name){
@@ -317,9 +323,15 @@
                 return reject("bad path");
             }
             
-            // build full download path and start download in background
-            const fullDownloadPath = GetFullPathFromPath(download_path);
-            
+            // build full download path depending on if directory send to get endpoint and start download in background
+            let fullDownloadPath;
+            if (isDirectory){
+                fullDownloadPath = GetFullPathFromPath(`GET/GetZippedDirectory?path=${download_path}`);
+            }
+            else{
+                fullDownloadPath = GetFullPathFromPath(download_path);
+            }
+            console.log(fullDownloadPath);
             const response_msg = await StartDownload(fullDownloadPath, this, download_name).catch((err) => console.error(err));
             if (!response_msg){
                 return reject("Failed to download");
