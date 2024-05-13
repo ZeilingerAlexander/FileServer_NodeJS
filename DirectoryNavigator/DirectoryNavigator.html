@@ -354,7 +354,7 @@
             const data = await fetch(link, {
                 method : "GET"
             }).catch((err) => console.error(err));
-            if (!data){
+            if (!data || !data.ok){
                 return reject("Failed to fetch");
             }
             
