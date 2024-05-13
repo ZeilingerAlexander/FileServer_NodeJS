@@ -19,6 +19,12 @@ let StrongRequestQueue = {
         // ip
     ]
 }
+let ExtremeRequestQueue = {
+    lastRequestTimestamp : 0,
+    queue : [
+        // ip
+    ]
+}
 
 /*appplies rate limiting to the provided request with the provided values*/
 async function ApplyAmbigousRequestRateLimit (req, request_queue, Reset_Timeout, MaxAllowedRequestsPerTimout){
@@ -91,7 +97,20 @@ async function ApplyStrongRequestRateLimit(req){
     });
 }
 
-/*Handles rate limiting on the provided req and res with the level of strength (0,1,2) (weak,medium,strong)
+/*Applies the extreme request rate limit to provided request*/
+async function ApplyExtremeRequestRateLimit(req){
+    return new Promise (async (resolve,reject) => {
+        const resultmsg = await ApplyAmbigousRequestRateLimit(
+            req, ExtremeRequestQueue, process.env.RATELIMIT_EXTREMERESETTIMEOUT, process.env.RATELIMIT_EXTREMEMAXALLOWEDREQUESTSPERTIMOUT).catch(
+            (err) => LogErrorMessage(err.message));
+        if (!resultmsg){
+            return reject("Rate Limit Reached");
+        }
+        return resolve("No Rate Limit applied");
+    });
+}
+
+/*Handles rate limiting on the provided req and res with the level of strength (0,1,2,3) (weak,medium,strong,extreme)
 * returns a simple rate limit error to result and ends result if rate limiting applies
 * resolves with true if rate limit got reached and false if not*/
 export async function HandleRateLimit(req, res, strength){
@@ -101,6 +120,7 @@ export async function HandleRateLimit(req, res, strength){
             case 0 : result_message = await ApplyWeakRequestRateLimit(req).catch((err) => {}); break;
             case 1 : result_message = await ApplyMediumRequestRateLimit(req).catch((err) => {}); break;
             case 2 : result_message = await ApplyStrongRequestRateLimit(req).catch((err) => {}); break;
+            case 3 : result_message = await ApplyExtremeRequestRateLimit(req).catch((err) => {}); break;
             default : throw "bad input for strength";
         }
         if (!result_message){
