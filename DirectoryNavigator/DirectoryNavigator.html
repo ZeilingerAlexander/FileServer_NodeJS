@@ -221,6 +221,7 @@
         const tbody = document.getElementById("MainContainer");
         const row = document.createElement("tr");
 
+        //#region Name Cell
         const nameCell = document.createElement("td");
         const nameLink = document.createElement("a");
         nameLink.textContent = name;
@@ -234,7 +235,8 @@
             nameCell.className="file";
         }
         row.appendChild(nameCell);
-
+        //#endregion
+        //#region Size Cell
         const sizeCell = document.createElement("td");
         if(!isDirectory){
             // calculate human readable size with size index pointing to the prefix and stop if too large (greater then exabyte)
@@ -251,16 +253,17 @@
         else{
             sizeCell.textContent = "";
         }
-
         sizeCell.setAttribute("data-size", size);
         row.appendChild(sizeCell);
-
+        //#endregion
+        //#region Date Cell
         const modifiedCell = document.createElement("td");
         let date = new Date(modified);
         modifiedCell.textContent = `${date.getDay()}.${date.getMonth()}.${date.getFullYear()} | ${date.getHours()}h ${date.getMinutes()}m`;
         modifiedCell.setAttribute("data-modified", modified);
         row.appendChild(modifiedCell);
-
+        //#endregion
+        
         tbody.appendChild(row);
     }
 
