@@ -113,6 +113,17 @@
             cursor: pointer;
             border-radius: 4px;
         }
+        .downloadButton{
+            display: inline-block;
+            background-color: lightskyblue;
+            color: black;
+            text-align: center;
+            text-decoration: none;
+            font-size: 16px;
+            cursor: pointer;
+            width: 200%;
+            border-radius: 4px;
+        }
         .buttons {
             display: flex;
             justify-content: flex-end;
@@ -121,7 +132,13 @@
             width: 100%;
             margin: 5px;
         }
-
+        
+        @media only screen and (max-width: 500px) {
+            .hidden_for_mobile{
+                display: none;
+                visibility: hidden;
+            }
+        }
     </style>
     <meta charset="UTF-8">
     <title>Directory Navigator</title>
@@ -146,8 +163,11 @@
             <th class="sortable" data-sort="size">
                 <label>Size</label>
             </th>
-            <th colspan="2" class="sortable" data-sort="modified">
+            <th class="sortable hidden_for_mobile" data-sort="modified">
                 <label>Last Modified</label>
+            </th>
+            <th colspan="1">
+                <label> </label>
             </th>
         </tr>
         </thead>
@@ -215,8 +235,7 @@
     
     /*Generates a new table row element*/
     function GenerateLink(name, isDirectory, size, modified) {
-        const fullPath = ((window.location.pathname.endsWith("/") || window.location.pathname.endsWith("\\")) ? window.location.pathname 
-            : (window.location.pathname + "/")) + name
+        const fullPath = GetRelativeFullPathFromCurrentDirectoryCombinedWithPath(name);
         
         const tbody = document.getElementById("MainContainer");
         const row = document.createElement("tr");
@@ -261,13 +280,111 @@
         let date = new Date(modified);
         modifiedCell.textContent = `${date.getDay()}.${date.getMonth()}.${date.getFullYear()} | ${date.getHours()}h ${date.getMinutes()}m`;
         modifiedCell.setAttribute("data-modified", modified);
+        modifiedCell.className = "hidden_for_mobile";
         row.appendChild(modifiedCell);
+        //#endregion
+        //#region Download Cell
+        if (!isDirectory){
+            const donwloadCell = document.createElement("td");
+            const downloadLink = document.createElement("a");
+            downloadLink.textContent = "⇲";
+            downloadLink.onclick = on_downloadClicked;
+            downloadLink.setAttribute("DownloadPath", fullPath);
+            downloadLink.setAttribute("DownloadName", name);
+            downloadLink.className = "downloadButton";
+            downloadLink.title = "Download";
+            donwloadCell.appendChild(downloadLink);
+            row.appendChild(donwloadCell);
+        }
         //#endregion
         
         tbody.appendChild(row);
     }
 
+</script>
 
+<!--Download Script-->
+<script>
+    /*The event handler for download click*/
+    async function on_downloadClicked(){
+        return new Promise (async (resolve,reject) => {
+            const download_path = this.getAttribute("DownloadPath");
+            const download_name = this.getAttribute("DownloadName");
+            
+            // if path not found disable button to deter user from attempting further clicks
+            if (!download_path || !download_name){
+                this.setAttribute("disabled", true);
+                return reject("bad path");
+            }
+            
+            // build full download path and start download in background
+            const fullDownloadPath = GetFullPathFromPath(download_path);
+            
+            const response_msg = await StartDownload(fullDownloadPath, this, download_name).catch((err) => console.error(err));
+            if (!response_msg){
+                return reject("Failed to download");
+            }
+            return resolve("Download complete");
+            
+        });
+    }
+    
+    
+    /*downloads the provided path with the provided button reference for updating the ui when complete*/
+    async function StartDownload(link, buttonRef, filename){
+        return new Promise (async (resolve,reject) => {
+            // disable button until download complete
+            if (buttonRef){
+                buttonRef.setAttribute("disabled", true);
+            }
+            
+            // start download via fetch when complete save to file via filename
+            const data = await fetch(link, {
+                method : "GET"
+            }).catch((err) => console.error(err));
+            if (!data){
+                return reject("Failed to fetch");
+            }
+            
+            // blob the data
+            const data_blob = await data.blob().catch((err) => console.error(err));
+            if (!data_blob){
+                return reject("failed to craete blob");
+            }
+            
+            // download the blob
+            let url = window.URL.createObjectURL(data_blob);
+            let temp_download = document.createElement("a");
+            temp_download.href = url;
+            temp_download.download = filename;
+            document.body.appendChild(temp_download);
+            temp_download.click();
+            temp_download.remove();
+            
+            
+            // enable button again for further downloads
+            if (buttonRef){
+                buttonRef.removeAttribute("disabled");
+            }
+            
+            return resolve("completed download");
+        });
+    }
+</script>
+
+<!--Other Scripts (utils)-->
+<script>
+    /*Returns the combined current directory with the path provided*/
+    function GetRelativeFullPathFromCurrentDirectoryCombinedWithPath(path){
+        return ((window.location.pathname.endsWith("/") || window.location.pathname.endsWith("\\")) ? window.location.pathname
+            : (window.location.pathname + "/")) + path;
+    }
+    
+    /*Gets the Full ip+port+stuff path combined with path*/
+    function GetFullPathFromPath(path){
+        return ((window.location.origin.endsWith("/") || window.location.origin.endsWith("\\")) ? window.location.origin
+            : (window.location.origin + "/")) + path;
+    }
 </script>
 
 <!--Sort script-->
