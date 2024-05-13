@@ -25,6 +25,8 @@ process.env = GenerateSensitiveInformation(process.env);
 // connect to mysql server, if it fails it rejects and program exists :)
 await CreateDbContext(process.env);
 
+// TODO : add creating the important directories if they dont exist (static, users, users-zips, PublicResources, etc...)
+
 // start the server
 const serverMessage = await StartServer();
 await LogDebugMessage(serverMessage)
