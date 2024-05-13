@@ -201,7 +201,18 @@
 
 <!--link generator script-->
 <script>
-
+    // The Size Dictionary used for displaying human readable sizes
+    const size_prefixes = {
+        0 : "B",
+        1 : "KB",
+        2 : "MB",
+        3 : "GB",
+        4 : "TB",
+        5 : "PB",
+        6 : "EB"
+    }
+    
+    
     /*Generates a new table row element*/
     function GenerateLink(name, isDirectory, size, modified) {
         const fullPath = ((window.location.pathname.endsWith("/") || window.location.pathname.endsWith("\\")) ? window.location.pathname 
@@ -225,7 +236,22 @@
         row.appendChild(nameCell);
 
         const sizeCell = document.createElement("td");
-        sizeCell.textContent = isDirectory ? "" : size;
+        if(!isDirectory){
+            // calculate human readable size with size index pointing to the prefix and stop if too large (greater then exabyte)
+            let humanSize = size;
+            let sizeIndex = 0;
+            while (humanSize > 1000 && sizeIndex <= 6){
+                sizeIndex++;
+                humanSize = Math.round(humanSize / 1000);
+                console.log("hit", humanSize, " - ",sizeIndex);
+            }
+            console.log("passed", humanSize, " - ",sizeIndex);
+            sizeCell.textContent = humanSize + " " + size_prefixes[`${sizeIndex}`];
+        }
+        else{
+            sizeCell.textContent = "";
+        }
+
         sizeCell.setAttribute("data-size", size);
         row.appendChild(sizeCell);
 

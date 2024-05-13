@@ -20,6 +20,7 @@ export async function StartServer (){
 
 /*Gets called on any server request*/
 async function on_ServerRequest(req, res){
+    console.log(req.headers);
     LogDebugMessage(`Got Request ${req.method} ${req.url}`);
     
     // apply rate limiting
