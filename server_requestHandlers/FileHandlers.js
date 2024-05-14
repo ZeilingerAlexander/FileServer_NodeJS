@@ -65,10 +65,10 @@ export async function HandleUnauthorized(req,res){
             (err) => console.log(err)
         )
         if (success_message){
-            return resolve("Successfully got 403 page");
+            return resolve("Successfully got 401 page");
         }
         else{
-            return reject("Failed to get 403 page");
+            return reject("Failed to get 401 page");
         }
     });
 }
