@@ -150,6 +150,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
                 return resolve("File not ready yet, not sending file");
             }
 
+            // download file or redirect
             if (filestats.size < Math.pow(10, 8)){
                 // smaller then 100mb, download directly
 
@@ -158,12 +159,12 @@ export async function HandlePostCreateZippedDirectory(req, res){
                 return resolve("Successfully piped existing file to result stream");
             }
             else{
-                // TODO : implement
-                
+                // larger then 100mb, redirect
+                await HandleFileTooLargeRedirectResponse(res);
             }
         }
         else{
-            // TODO : update this
+            // TODO : update this, only redirect or download if small enough when the file finishes uploading. during the upload user shouldnt close the page
             throw "implement";
             
             const response_message = await ZipDirectoryToPath(fullDirectoryPath, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
@@ -189,5 +190,14 @@ async function HandleFileNotReadyResponse(res){
     return new Promise (async (resolve) => {
         await HandleSimpleResultMessage(res, 423, "file not ready").catch((err) => LogErrorMessage(err.message,err));
         return resolve("completed handling simple result message saying file not ready, maybe failed but completed!");
+    });
+}
+
+/*Handles the response to redirect user to the user/zip page if the file is too large, never rejects but can fail*/
+async function HandleFileTooLargeRedirectResponse(res){
+    return new Promise (async (resolve) => {
+        await HandleSimpleResultMessage(res, 303, "file too large, redirecting").catch((err) => LogErrorMessage(err.message,err));
+        // TODO : FIx redirect to include actual redirect in body for frontend to auto-redirect
+        return resolve("completed handling simple result 303 saying file to olarge redirecting");
     });
 }
