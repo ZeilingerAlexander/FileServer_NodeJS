@@ -6,7 +6,6 @@ import {HandleNotFound} from "./FileHandlers.js";
 import {HandleAuthorizationLoginOnPost, HandleLogoutUserOnPost} from "../Authorization/auth.js";
 import {HandleGetUploadPage} from "./GETEndpoints/GetUploadPage.js";
 import {HandleGetPublicResource} from "./GETEndpoints/GetPublicResource.js";
-import {HandleGetZippedDirectory} from "./GETEndpoints/GetZippedDirectory.js";
 import {HandlePostCreateZippedDirectory} from "./POSTEndpoints/POSTCreateZippedDirectory.js";
 
 /*The Allowed Query Url entry points, example : /GET/ /POST/, ...*/
