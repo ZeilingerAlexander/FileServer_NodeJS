@@ -7,7 +7,7 @@ import {
     GetFullPathFromRelativePath, GetImportantDirectoryInfo_Size_LastModifierz,
     GetSingleURLParameter_ReturnBadRequestIfNotFound,
     GetUrlParameters,
-    GetValidatedUserRelativePathFromRequestPath, RemoveFile, ZipDirectoryToPath
+    GetValidatedUserRelativePathFromRequestPath, RemoveFile, ZipDirectoryToPath, Zipper_CheckIfFileISReady
 } from "../../InputValidator.js";
 import {LogErrorMessage} from "../../logger.js";
 import {HandleRateLimit} from "../../RateLimiter/RateLimiter.js";
@@ -143,14 +143,23 @@ export async function HandlePostCreateZippedDirectory(req, res){
                 return reject("Failed to get filestats for should-be existing file");
             }
             
+            // check if file is ready
+            if (!await Zipper_CheckIfFileISReady(fullExpectedZipFileNameStatic)){
+                // file isnt ready, do not reject since that will produce a response on its own
+                await HandleFileNotReadyResponse(res);
+                return resolve("File not ready yet, not sending file");
+            }
+
             if (filestats.size < Math.pow(10, 8)){
                 // smaller then 100mb, download directly
+
                 const responsemsg = await WriteFileFromStaticPathToResult(res, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
                 if (!responsemsg){return reject("Failed to write stream to result");}
                 return resolve("Successfully piped existing file to result stream");
             }
             else{
                 // TODO : implement
+                
             }
         }
         else{
@@ -172,5 +181,13 @@ export async function HandlePostCreateZippedDirectory(req, res){
             }
             return resolve("Zipped File and sent it to client");
         }
+    });
+}
+
+/*Handles the file not ready to be downloaded yet response, never rejects even tho it can fail to process the expected result*/
+async function HandleFileNotReadyResponse(res){
+    return new Promise (async (resolve) => {
+        await HandleSimpleResultMessage(res, 423, "file not ready").catch((err) => LogErrorMessage(err.message,err));
+        return resolve("completed handling simple result message saying file not ready, maybe failed but completed!");
     });
 }

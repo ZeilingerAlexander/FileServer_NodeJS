@@ -541,7 +541,7 @@ async function Zipper_RemoveTempFileMarker(zipPath){
 }
 
 /*Checks if the file pointing to the provided path is ready to be downloaded and doesnt have a marker, never rejects only resolves true/false*/
-async function Zipper_CheckIfFileISReady(file_path){
+export async function Zipper_CheckIfFileISReady(file_path){
     return new Promise (async (resolve) => {
         const fileExist = await CheckIFPathExists(file_path+process.env.ZIPPER_TEMPFILEMARKEREXTENTION).catch((err) => LogErrorMessage(err.message,err));
         if (!fileExist){
