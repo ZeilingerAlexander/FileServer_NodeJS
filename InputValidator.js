@@ -434,9 +434,11 @@ export async function ZipDirectoryToPath(dir_to_zip, out_path){
         console.log("nay")
         for (const filesKey in files) {
             const file = files[filesKey];
+            console.log(file);
+            console.log(file);
+            console.log(file);
             
             const stats = await fsp.stat(file).catch((err) => LogErrorMessage(err.message,err));
-            console.log(file);
             if (stats && stats.isFile()){
                 console.log("hey")
                 const relativePath = path.relative(dir_to_zip, file);
@@ -476,15 +478,16 @@ async function GetAllFilePathsInDirectory(dirPath, arr){
         //      folder
         //          file
         // file
+        // (only writes files)
         
         for (const dirStructureKey in dirStructure) {
             const entry = dirStructure[dirStructureKey];
             // append to array, first normalize directoery path to always end with /
-            const normalizedEntryPath = ((dirPath.endsWith("/") || dirPath.endsWith("\\")) ? dirPath : dirPath + "/");
-            arr.push(normalizedEntryPath + entry.name);
+            const normalizedEntryPath = ((dirPath.endsWith("/") || dirPath.endsWith("\\")) ? dirPath : dirPath + "/")  + entry.name;
+            arr.push(normalizedEntryPath);
             
             // if its a directory call again after writing the directory entry to the array already
-            if (entry.isDirectory){
+            if (entry.Directory){
                 arr = await GetAllFilePathsInDirectory(normalizedEntryPath, arr);
             }
         }
