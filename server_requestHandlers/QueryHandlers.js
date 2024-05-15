@@ -7,6 +7,7 @@ import {HandleAuthorizationLoginOnPost, HandleLogoutUserOnPost} from "../Authori
 import {HandleGetUploadPage} from "./GETEndpoints/GetUploadPage.js";
 import {HandleGetPublicResource} from "./GETEndpoints/GetPublicResource.js";
 import {HandleGetZippedDirectory} from "./GETEndpoints/GetZippedDirectory.js";
+import {HandlePostCreateZippedDirectory} from "./POSTEndpoints/POSTCreateZippedDirectory.js";
 
 /*The Allowed Query Url entry points, example : /GET/ /POST/, ...*/
 const ValidQueryUrlEntryPoints = [
@@ -21,7 +22,7 @@ const QueryEndpoints = {
     PostLogoutUser : HandleLogoutUserOnPost,
     GetUploadPage : HandleGetUploadPage,
     GetPublicResource : HandleGetPublicResource,
-    GetZippedDirectory : HandleGetZippedDirectory
+    PostCreateZippedDirectory : HandlePostCreateZippedDirectory
 }
 
 /*Handles a Query endpoint defined under QueryEndpoints, returns 404 if not found*/

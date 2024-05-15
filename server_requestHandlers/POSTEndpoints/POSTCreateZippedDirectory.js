@@ -13,25 +13,25 @@ import {LogErrorMessage} from "../../logger.js";
 import {HandleRateLimit} from "../../RateLimiter/RateLimiter.js";
 import {HandleSimpleResultMessage} from "../../server.js";
 import {WriteFileFromStaticPathToResult} from "../FileHandlers.js";
-export async function HandleGetZippedDirectory(req, res){
+export async function HandlePostCreateZippedDirectory(req, res){
     return new Promise (async (resolve,reject) => {
         if (!req.accessLevel || req.accessLevel < 2){
             return reject("Access level of at least 2 required");
         }
-        
+
         // instantly apply strong rate limiting since block-size lookup of directories can take a long time and we dont want that being spammed
         if (await HandleRateLimit(req, res, 2)){
             // rate limited
             return resolve("rate limited");
         }
-        
+
         // get directory location from url parameters
         let dirLocation = await GetSingleURLParameter_ReturnBadRequestIfNotFound(req, res, "path").catch(
             (err) => LogErrorMessage(err.message,err));
         if (!dirLocation){
             return reject("Failed to get directory location from url params");
         }
-        
+
         // validate and set the new directory path if necessary (below 4 = no read access to all) this means actual entry point is /users/id
         if (req.accessLevel < 4){
             const validatedRequestPath = await GetValidatedUserRelativePathFromRequestPath(dirLocation, req.userID).catch((err) => LogErrorMessage(err.message,err));
@@ -40,10 +40,10 @@ export async function HandleGetZippedDirectory(req, res){
             }
             dirLocation = validatedRequestPath;
         }
-        
+
         // Get the full path for the directory and check against path traversal again
         const fullDirectoryPath = GetFullPathFromRelativePath(dirLocation);
-        
+
         // validate path traversal for request directory location
         if (req.accessLevel < 4){
             // validate for user directory
@@ -60,7 +60,7 @@ export async function HandleGetZippedDirectory(req, res){
             }
         }
 
-        
+
         // get the directory size then determine if more harsh limiting shall be applied
         const directoryInfo = await GetImportantDirectoryInfo_Size_LastModifierz(fullDirectoryPath).catch((err) => LogErrorMessage(err.message,err));
         const directorySize = directoryInfo.size;
@@ -68,7 +68,7 @@ export async function HandleGetZippedDirectory(req, res){
         if (!directoryInfo || directorySize === undefined || directoryLastModified === undefined){
             return reject("Failed to get directory info");
         }
-        
+
         // apply extreme rate limiting if directory size bigger then max cutoff point
         if (directorySize > process.env.RATELIMIT_BYTESIZE_CUTOFFPOINT_ZIPPEDDIRECTORIES){
             if (await HandleRateLimit(req, res, 3)){
@@ -76,13 +76,13 @@ export async function HandleGetZippedDirectory(req, res){
                 return resolve("rate limited");
             }
         }
-        
+
         // check if a zip file with the name already exists under the zip user directory, replace escape characters with _
         // parse the full directory name for later validating against it and also to create a new entry based on it (this is simply the name normalized)
         let full_dir_parsed_name = dirLocation.replaceAll("/", "_");
         full_dir_parsed_name = full_dir_parsed_name.replaceAll("\\", "_");
         full_dir_parsed_name = full_dir_parsed_name.replaceAll("-", "_");
-        
+
         // The full zip directories, first the base path just being the one in env file then the user specific one, these are for validating before getting file stats
         const full_zip_BaseDirectoryPath = await GetFullPathFromRelativePath(process.env.USERZIPDIRECTORY_RELATIVEPATH);
         const full_zip_userDirecotry_path =  path.join( full_zip_BaseDirectoryPath, req.userID);
@@ -90,7 +90,7 @@ export async function HandleGetZippedDirectory(req, res){
         // The full expected zip file name, this will be checked if it already exists, if so it will use it instead of creating a new one
         const fullExpectedZipFileNameRelative = full_dir_parsed_name + directoryLastModified + ".zip";
         const fullExpectedZipFileNameStatic = path.join(full_zip_userDirecotry_path, fullExpectedZipFileNameRelative);
-        
+
         // it is on purpose to run them sync in order to achieve in time file system manipulation
         if (!await CheckIFPathExists(full_zip_BaseDirectoryPath)){
             CreateDirectory(full_zip_BaseDirectoryPath);
@@ -98,10 +98,10 @@ export async function HandleGetZippedDirectory(req, res){
         if (!await CheckIFPathExists(full_zip_userDirecotry_path)){
             CreateDirectory(full_zip_userDirecotry_path);
         }
-        
+
         // whether or not n existing match was found for the expected zip file path
         let ExistingMatch = false;
-        
+
         // check if it already exists if so use that instead of creating new one, this will also delete all deprecated ones if any come up
         const directoryStructure = await GetDirectoryStructure(full_zip_userDirecotry_path);
         for (const directoryStructureKey in directoryStructure) {
@@ -118,7 +118,7 @@ export async function HandleGetZippedDirectory(req, res){
                 }
             }
         }
-        
+
         /* TODO : Only directly download files below roughly 100mb since the file will need to be loaded into memory in order to be downloaded
            we can expect everyone to have roughly 1mb/s download speed and a computer with at least 100mb spare ram for browser tabs so its fine to download that
            for those files show 
@@ -134,14 +134,29 @@ export async function HandleGetZippedDirectory(req, res){
                     BUT if a marker file exists for that file it means that the zip file is bad and should be removed, then first remove the zip file and if that works the marker
             
         */
-        
-        // if existing match read from exisitng file, if not create new
+
+        // if existing match use that file instead of creating new one
         if (ExistingMatch){
-            const responsemsg = await WriteFileFromStaticPathToResult(res, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
-            if (!responsemsg){return reject("Failed to write stream to result");}
-            return resolve("Successfully piped existing file to result stream");
+            // check the filestats for size then decide if to download directly or to shift to the zipped directories
+            const filestats = await GetFileStats(fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message, err));
+            if (!filestats || !filestats.size){
+                return reject("Failed to get filestats for should-be existing file");
+            }
+            
+            if (filestats.size < Math.pow(10, 8)){
+                // smaller then 100mb, download directly
+                const responsemsg = await WriteFileFromStaticPathToResult(res, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
+                if (!responsemsg){return reject("Failed to write stream to result");}
+                return resolve("Successfully piped existing file to result stream");
+            }
+            else{
+                // TODO : implement
+            }
         }
         else{
+            // TODO : update this
+            throw "implement";
+            
             const response_message = await ZipDirectoryToPath(fullDirectoryPath, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
             if (!response_message){
                 // failed
