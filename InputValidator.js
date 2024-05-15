@@ -428,19 +428,17 @@ export async function ZipDirectoryToPath(dir_to_zip, out_path){
         archive.pipe(out);
 
         // get all paths inside directory
-        const files = await GetAllFilePathsInDirectory(dir_to_zip);
-        console.log("nay")
-        console.log("nay")
-        console.log("nay")
+        let files = await GetAllFilePathsInDirectory(dir_to_zip);
+        
+        // remove possible self-read entries
+        files = files.filter((filename) => !(path.basename(filename) == path.basename((out_path))));
+        
         for (const filesKey in files) {
             const file = files[filesKey];
-            console.log(file);
-            console.log(file);
-            console.log(file);
             
+            // ensure that it exists and is a file
             const stats = await fsp.stat(file).catch((err) => LogErrorMessage(err.message,err));
             if (stats && stats.isFile()){
-                console.log("hey")
                 const relativePath = path.relative(dir_to_zip, file);
                 archive.append(fs.createReadStream(file), {name : relativePath});
             }
