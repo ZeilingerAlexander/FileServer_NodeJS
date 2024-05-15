@@ -84,7 +84,7 @@ export async function IsPathDirectory(path){
     });
 }
 
-/*Checks if a given path is either a file or directory*/
+/*Checks if a given path is either a file or directory, never rejects only resolves true/false*/
 export async function CheckIFPathExists(path){
     return new Promise(async (resolve) => {
         const stats = await fsp.lstat(path).catch((err) => console.log(err));
@@ -537,6 +537,17 @@ async function Zipper_RemoveTempFileMarker(zipPath){
             return reject("Failed to remove temp file marker");
         }
         return resolve("Succesfully remove temp file marker");
+    });
+}
+
+/*Checks if the file pointing to the provided path is ready to be downloaded and doesnt have a marker, never rejects only resolves true/false*/
+async function Zipper_CheckIfFileISReady(file_path){
+    return new Promise (async (resolve) => {
+        const fileExist = await CheckIFPathExists(file_path+process.env.ZIPPER_TEMPFILEMARKEREXTENTION).catch((err) => LogErrorMessage(err.message,err));
+        if (!fileExist){
+            return resolve(true);
+        }
+        return resolve(false);
     });
 }
 
