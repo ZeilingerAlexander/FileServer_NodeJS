@@ -313,6 +313,7 @@
     /*The event handler for download click*/
     async function on_downloadClicked(){
         return new Promise (async (resolve,reject) => {
+            // TODO : convert this with backend, read other todos
             const download_path = this.getAttribute("DownloadPath");
             let download_name = this.getAttribute("DownloadName");
             const isDirectory = !!this.getAttribute("download_isDirectory");
