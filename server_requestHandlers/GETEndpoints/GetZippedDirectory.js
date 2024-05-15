@@ -7,7 +7,7 @@ import {
     GetFullPathFromRelativePath, GetImportantDirectoryInfo_Size_LastModifierz,
     GetSingleURLParameter_ReturnBadRequestIfNotFound,
     GetUrlParameters,
-    GetValidatedUserRelativePathFromRequestPath, RemoveFile
+    GetValidatedUserRelativePathFromRequestPath, RemoveFile, ZipDirectoryToPath
 } from "../../InputValidator.js";
 import {LogErrorMessage} from "../../logger.js";
 import {HandleRateLimit} from "../../RateLimiter/RateLimiter.js";
@@ -31,8 +31,8 @@ export async function HandleGetZippedDirectory(req, res){
         if (!dirLocation){
             return reject("Failed to get directory location from url params");
         }
-
-        // validate and set the new directory path if necessary (below 4 = no read access to all)
+        
+        // validate and set the new directory path if necessary (below 4 = no read access to all) this means actual entry point is /users/id
         if (req.accessLevel < 4){
             const validatedRequestPath = await GetValidatedUserRelativePathFromRequestPath(dirLocation, req.userID).catch((err) => LogErrorMessage(err.message,err));
             if (!validatedRequestPath){
@@ -43,11 +43,23 @@ export async function HandleGetZippedDirectory(req, res){
         
         // Get the full path for the directory and check against path traversal again
         const fullDirectoryPath = GetFullPathFromRelativePath(dirLocation);
-        const userDirectoryStartPath = GetFullPathFromRelativePath(process.env.USERDIRECTORY_RELATIVEPATH.toString() + "/" + req.userID.toString());
         
-        if (!fullDirectoryPath.startsWith(userDirectoryStartPath)){
-            return reject("path traversal on lower level detected, this should not happen but it happened regardless, check naming conventions for files etc");
+        // validate path traversal for request directory location
+        if (req.accessLevel < 4){
+            // validate for user directory
+            const userDirectoryStartPath = GetFullPathFromRelativePath(process.env.USERDIRECTORY_RELATIVEPATH.toString() + "/" + req.userID.toString());
+            if (!fullDirectoryPath.startsWith(userDirectoryStartPath)){
+                return reject("path traversal on lower level detected, this should not happen but it happened regardless, check naming conventions for files etc");
+            }
         }
+        else{
+            // validate for full directory entry point "/" (static, root)
+            const rootDirStartPath = process.env.STATIC_PATH;
+            if (!fullDirectoryPath.startsWith(rootDirStartPath)){
+                return reject("path traversal on lower root level detected, this should not happen but it happened regardless, check naming conventions for files etc");
+            }
+        }
+
         
         // get the directory size then determine if more harsh limiting shall be applied
         const directoryInfo = await GetImportantDirectoryInfo_Size_LastModifierz(fullDirectoryPath).catch((err) => LogErrorMessage(err.message,err));
@@ -111,10 +123,25 @@ export async function HandleGetZippedDirectory(req, res){
         if (ExistingMatch){
             const responsemsg = await WriteFileFromStaticPathToResult(res, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
             if (!responsemsg){return reject("Failed to write stream to result");}
+            console.log("exists");
             return resolve("Successfully piped existing file to result stream");
         }
         else{
-            // TODO : add creating zip file
+            console.log("no exist");
+            const response_message = await ZipDirectoryToPath(fullDirectoryPath, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
+            if (!response_message){
+                // failed
+                await HandleSimpleResultMessage(res, 500, "Failed to Zip File");
+                return reject("Failed to get zipped file");
+            }
+            // success so return the zipped file
+            const write_response = await WriteFileFromStaticPathToResult(res, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
+            if (!write_response){
+                // failed
+                await HandleSimpleResultMessage(res, 500, "Failed to Zip File");
+                return reject("Failed to send file to client");
+            }
+            return resolve("Zipped File and sent it to client");
         }
     });
 }

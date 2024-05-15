@@ -1,11 +1,12 @@
 import * as path from "path";
 import {promises as fsp} from "fs";
+import * as fs from "fs";
 import {AllowedDirectories} from "./variables/AllowedDirectories.js";
 import {LogDebugMessage, LogErrorMessage} from "./logger.js";
 import * as bcrypt from "bcrypt";
-import {reject} from "bcrypt/promises.js";
 import {HandleSimpleResultMessage} from "./server.js";
 import {MIME_TYPES} from "./variables/mimeTypes.js";
+import archiver from "archiver";
 
 // ...
 
@@ -339,7 +340,9 @@ export async function GetFileStats(content_path){
     });
 }
 
-/*Gets the Directory Structure, rejects on failure*/
+/*Gets the Directory Structure, rejects on failure
+* Resolves with a structure of files {name (the name of the file), Directory (if the file is a directory or not), 
+* size (size in bytes), lastModified, creationTime}*/
 export async function GetDirectoryStructure(dir_path){
     return new Promise (async (resolve,reject) => {
         const dir = await fsp.readdir(dir_path).catch(
@@ -399,5 +402,94 @@ export async function RemoveFile(file_path){
             await fsp.unlink(file_path).catch((err) => LogErrorMessage(err.message,err));
         }
         return resolve("finished unlinking");
+    });
+}
+
+/*Zips the Provided Directory to the provided output path, resolves when complete, rejects if any values empty or out_path already existing*/
+export async function ZipDirectoryToPath(dir_to_zip, out_path){
+    return new Promise (async (resolve,reject) => {
+        if (!dir_to_zip || !out_path || await CheckIFPathExists(out_path)){
+            return reject("Bad Input");
+        }
+
+        const out = fs.createWriteStream(out_path);
+        const archive = archiver.create("zip", {
+            zlib : {level: 9}
+        });
+        out.on("close", function (){
+            return resolve("Successfully saved to zip file");
+        });
+        
+        out.on("error", function (err){
+            LogErrorMessage(err.message,err);
+            return reject("Failed to compress to zip file");
+        });
+        
+        archive.pipe(out);
+
+        // get all paths inside directory
+        const files = await GetAllFilePathsInDirectory(dir_to_zip);
+        console.log("nay")
+        console.log("nay")
+        console.log("nay")
+        for (const filesKey in files) {
+            const file = files[filesKey];
+            
+            const stats = await fsp.stat(file).catch((err) => LogErrorMessage(err.message,err));
+            console.log(file);
+            if (stats && stats.isFile()){
+                console.log("hey")
+                const relativePath = path.relative(dir_to_zip, file);
+                archive.append(fs.createReadStream(file), {name : relativePath});
+            }
+        }
+        
+        archive.finalize();
+    });
+}
+
+
+/*Gets all the file paths inside a directory including sub-directories, rejects on read error or bad data*/
+async function GetAllFilePathsInDirectory(dirPath, arr){
+    return new Promise (async (resolve,reject) => {
+        if (!dirPath){
+            return reject("bad input");
+        }
+        
+        // create array if not existing
+        if (!arr){
+            arr = [];
+        }
+        
+        const dirStructure = await GetDirectoryStructure(dirPath).catch((err) => LogErrorMessage(err));
+        if (!dirStructure){
+            // reject if failed
+            return reject("failed to get dir structure");
+        }
+        
+        // write in order :
+        // file
+        // file
+        // folder
+        //      file
+        //      file
+        //      folder
+        //          file
+        // file
+        
+        for (const dirStructureKey in dirStructure) {
+            const entry = dirStructure[dirStructureKey];
+            // append to array, first normalize directoery path to always end with /
+            const normalizedEntryPath = ((dirPath.endsWith("/") || dirPath.endsWith("\\")) ? dirPath : dirPath + "/");
+            arr.push(normalizedEntryPath + entry.name);
+            
+            // if its a directory call again after writing the directory entry to the array already
+            if (entry.isDirectory){
+                arr = await GetAllFilePathsInDirectory(normalizedEntryPath, arr);
+            }
+        }
+        
+        // resolve with array
+        return resolve(arr);
     });
 }
