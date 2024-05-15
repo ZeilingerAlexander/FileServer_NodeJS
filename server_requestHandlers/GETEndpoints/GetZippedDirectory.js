@@ -119,15 +119,16 @@ export async function HandleGetZippedDirectory(req, res){
             }
         }
         
-        /* TODO : Only directly download files below roughly 100mb since the file will need to be laoded into memery in order to be downloaded
+        /* TODO : Only directly download files below roughly 100mb since the file will need to be loaded into memory in order to be downloaded
            we can expect everyone to have roughly 1mb/s download speed and a computer with at least 100mb spare ram for browser tabs so its fine to download that
+           for those files show 
            
            now for larger files instead return a certain error code that frontend will understand
            with this error code it will redirect to user zip export page
            on this page user is shown all the zip exports, their status (if they are downloadable) and links to them
                 the get endpoint for them should open the link in a new tab for browser to handle download and should just be forwarded to handlegetfile or smth
-           this of course needs proper implementation with an in-memory storage and a custom get endpoint for file avaliability
-           create a temp file called the same as the zip export in same dir but with some extention or something this is to ensure that files that are currently being worked on are sure to be done
+           this of course needs proper implementation with an in-memory storage and a custom get endpoint for file availability
+           create a temp file called the same as the zip export in same dir but with some extension or something this is to ensure that files that are currently being worked on are sure to be done
                 on any error first remove the zip file then the temp file marker (if removing failed zip file works, if not just keep it)
                 on each server startup clean up by trying to load all available zip-exports marked as "ready" meaning ready to download
                     BUT if a marker file exists for that file it means that the zip file is bad and should be removed, then first remove the zip file and if that works the marker
