@@ -414,13 +414,13 @@ export async function ZipDirectoryToPath(dir_to_zip, out_path){
 
         const out = fs.createWriteStream(out_path);
         const archive = archiver.create("zip", {
-            zlib : {level: 9}
+            zlib : {level: 1}
         });
-        out.on("close", function (){
+        archive.on("close", function (){
             return resolve("Successfully saved to zip file");
         });
-        
-        out.on("error", function (err){
+
+        archive.on("error", function (err){
             LogErrorMessage(err.message,err);
             return reject("Failed to compress to zip file");
         });
@@ -431,7 +431,7 @@ export async function ZipDirectoryToPath(dir_to_zip, out_path){
         let files = await GetAllFilePathsInDirectory(dir_to_zip);
         
         // remove possible self-read entries
-        files = files.filter((filename) => !(path.basename(filename) == path.basename((out_path))));
+        files = files.filter((filename) => !(path.basename(filename) === path.basename((out_path))));
         
         for (const filesKey in files) {
             const file = files[filesKey];

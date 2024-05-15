@@ -123,11 +123,9 @@ export async function HandleGetZippedDirectory(req, res){
         if (ExistingMatch){
             const responsemsg = await WriteFileFromStaticPathToResult(res, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
             if (!responsemsg){return reject("Failed to write stream to result");}
-            console.log("exists");
             return resolve("Successfully piped existing file to result stream");
         }
         else{
-            console.log("no exist");
             const response_message = await ZipDirectoryToPath(fullDirectoryPath, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
             if (!response_message){
                 // failed
