@@ -21,7 +21,7 @@ export async function StartServer (){
 /*Gets called on any server request*/
 async function on_ServerRequest(req, res){
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
-    await delay(250) /// waiting 1 second.    console.log(req.headers);
+    await delay(250) /// waiting 
     LogDebugMessage(`Got Request ${req.method} ${req.url}`);
     
     // apply rate limiting

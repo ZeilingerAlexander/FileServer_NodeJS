@@ -1,7 +1,7 @@
 /*Handles getting zipped directory request*/
 import * as path from "path";
 import {
-    CheckIFPathExists, CreateDirectory,
+    CheckIFPathExists, CreateDirectory, GetDirectorySize,
     GetDirectoryStructure,
     GetFileStats,
     GetFullPathFromRelativePath, GetImportantDirectoryInfo_Size_LastModifierz,
@@ -143,7 +143,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
                 return reject("Failed to get filestats for should-be existing file");
             }
             
-            // check if file is ready
+            // check if file is not ready
             if (!await Zipper_CheckIfFileISReady(fullExpectedZipFileNameStatic)){
                 // file isnt ready, do not reject since that will produce a response on its own
                 await HandleFileNotReadyResponse(res);
@@ -151,7 +151,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
             }
 
             // download file or redirect
-            if (filestats.size < Math.pow(10, 8)){
+            if (filestats.size < process.env.ZIPPER_MAXALLOWEDDIRECTODOWNLOADSIZE){
                 // smaller then 100mb, download directly
 
                 const responsemsg = await WriteFileFromStaticPathToResult(res, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
@@ -161,31 +161,53 @@ export async function HandlePostCreateZippedDirectory(req, res){
             else{
                 // larger then 100mb, redirect
                 await HandleFileTooLargeRedirectResponse(res);
+                return resolve("completed redirecting to user zip export page, this might have failed but exiting regardless");
             }
         }
         else{
-            // TODO : update this, only redirect or download if small enough when the file finishes uploading. during the upload user shouldnt close the page
-            throw "implement";
+            // folder should be zipped
+            // determine if the folder exceeds the max allowed payload (this is not perfect since zipped files are obviosly tinier to *2 it)
+            const folder_size = await GetDirectorySize(fullDirectoryPath);
+            const fileTooLarge_performRedirect = (folder_size / 2 >= process.env.ZIPPER_MAXALLOWEDDIRECTODOWNLOADSIZE)
+            
+            if (fileTooLarge_performRedirect){
+                // handle redirect to "resolve" the request endpoint in frontend and mark the file as being-written
+                // since no more data from frontend is needed its fine to return a http response here, but dont resolve since we still need to actually write the zip file
+                await HandleFileTooLargeRedirectResponse(res);
+            }
             
             const response_message = await ZipDirectoryToPath(fullDirectoryPath, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
             if (!response_message){
-                // failed
+                // failed, still resolve due to handling the bad response on handlesimpleresultmessage
                 await HandleSimpleResultMessage(res, 500, "Failed to Zip File");
-                return reject("Failed to get zipped file");
+                return resolve("Failed to get zipped file");
             }
-            // success so return the zipped file
+            
+            const filestats = await GetFileStats(fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message, err));
+            if (!filestats || !filestats.size){
+                // failed, still resolve due to handling the bad response on handlesimpleresultmessage
+                await HandleSimpleResultMessage(res,  500, "Failed to get Stats from written zip file");
+                return resolve("Failed to get filestats for should-be existing file");
+            }
+            
+            // file zipping completed, if fileTooLarge_performRedirect = true we already wrote an addaquate response by redirecting if not directly download
+            if (fileTooLarge_performRedirect){
+                return resolve("Successfully zipped file");
+            }
+            
+            // download directly since below 100mb
             const write_response = await WriteFileFromStaticPathToResult(res, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
             if (!write_response){
-                // failed
-                await HandleSimpleResultMessage(res, 500, "Failed to Zip File");
-                return reject("Failed to send file to client");
+                // failed, still resolve due to handling the bad response on handlesimpleresultmessage
+                await HandleSimpleResultMessage(res, 500, "Failed to write zip File to result");
+                return resolve("Failed to send file to client");
             }
-            return resolve("Zipped File and sent it to client");
         }
     });
 }
 
-/*Handles the file not ready to be downloaded yet response, never rejects even tho it can fail to process the expected result*/
+/*Handles the file not ready to be downloaded yet response, never rejects even tho it can fail to process the expected result
+* if it fails it only failed to write simple result message so it would fail regardless, this means that program should just exit*/
 async function HandleFileNotReadyResponse(res){
     return new Promise (async (resolve) => {
         await HandleSimpleResultMessage(res, 423, "file not ready").catch((err) => LogErrorMessage(err.message,err));
@@ -193,7 +215,8 @@ async function HandleFileNotReadyResponse(res){
     });
 }
 
-/*Handles the response to redirect user to the user/zip page if the file is too large, never rejects but can fail*/
+/*Handles the response to redirect user to the user/zip page if the file is too large, never rejects but can fail, 
+if it fails it only failed to write simple result message so it would fail regardless, this means that program should just exit*/
 async function HandleFileTooLargeRedirectResponse(res){
     return new Promise (async (resolve) => {
         await HandleSimpleResultMessage(res, 303, "file too large, redirecting").catch((err) => LogErrorMessage(err.message,err));

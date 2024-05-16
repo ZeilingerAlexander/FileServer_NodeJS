@@ -87,7 +87,7 @@ export async function IsPathDirectory(path){
 /*Checks if a given path is either a file or directory, never rejects only resolves true/false*/
 export async function CheckIFPathExists(path){
     return new Promise(async (resolve) => {
-        const stats = await fsp.lstat(path).catch((err) => console.log(err));
+        const stats = await fsp.lstat(path).catch((err) => LogErrorMessage(err.message,err));
         if (!stats){return resolve(false);}
         if (!stats.isFile() && !stats.isDirectory()){
             return resolve(false);
@@ -342,7 +342,7 @@ export async function GetFileStats(content_path){
 
 /*Gets the Directory Structure, rejects on failure
 * Resolves with a structure of files {name (the name of the file), Directory (if the file is a directory or not), 
-* size (size in bytes), lastModified, creationTime}*/
+* size (size in bytes) -> only for files, lastModified, creationTime}*/
 export async function GetDirectoryStructure(dir_path){
     return new Promise (async (resolve,reject) => {
         const dir = await fsp.readdir(dir_path).catch(
@@ -388,6 +388,41 @@ export async function GetDirectoryStructure(dir_path){
     });
 }
 
+
+/*Gets the directory size of the provided directory by recursing throught it, only rejects on bad input, 
+DOES NOT REJECT IF FILESTAT/READ FAILS THIS MAY CAUSE INCORRECT DIRECTORY SIZE READS*/
+export async function GetDirectorySize(dir_path){
+    // TODO : this is very similar to GetFilesInDirectory but instead of getting names it gets sizes, it might be useful to combine these two functions into one to decrease complexity
+    return new Promise (async (resolve,reject) => {
+        let size = 0;
+        
+        if (!dir_path){
+            return reject("Bad input");
+        }
+        
+        const dirStructure = await GetDirectoryStructure(dir_path).catch((err) => LogErrorMessage(err.message,err));
+        if (!dirStructure){
+            // resolve with 0 to follow the "no reject" policy
+            return resolve(0);
+        }
+        
+        const normalizedDirectoryPath = (dir_path.endsWith("/") || dir_path.endsWith("\\")) ? dir_path : dir_path + "/";
+        for (const dirStructureKey in dirStructure) {
+            const entry = dirStructure[dirStructureKey];
+            
+            if (entry.Directory){
+                // is directory so recurse-call
+                size = size + await GetDirectorySize(normalizedDirectoryPath + entry.name).catch((err) => LogErrorMessage(err.message,err));
+                continue;
+            }
+            // not directory so just add size
+            size = size + entry.size;
+        }
+        
+        return resolve(size);
+    });
+}
+
 /*Creates a folder with the provided path*/
 export async function CreateDirectory(dir_path){
     await fsp.mkdir(dir_path).catch((err) => LogErrorMessage(err.message,err));
@@ -406,10 +441,10 @@ export async function RemoveFile(file_path){
 }
 
 /*Removes the provided path if ti points to a file, rejects on any failure*/
-async function RemoveFile_WithErrors(){
+async function RemoveFile_WithErrors(file_path){
     return new Promise (async (resolve,reject) => {
         const DoesPathExist = await CheckIFPathExists(file_path).catch((err) => LogErrorMessage(err.message,err));
-        if (DoesPathExist === undefined){
+        if (DoesPathExist === false){
             return reject("Failed to determine if path exists");
         }
         const isPathFile = await IsPathFile(file_path).catch((err) => LogErrorMessage(err.message,err));
@@ -497,7 +532,8 @@ export async function ZipDirectoryToPath(dir_to_zip, out_path){
         let files = await GetAllFilePathsInDirectory(dir_to_zip);
         
         // remove possible self-read entries
-        files = files.filter((filename) => !(path.basename(filename) === path.basename((out_path))));
+        files = files.filter((filename) => 
+            !((path.basename(filename) === path.basename((out_path)) || path.basename(filename) === path.basename(out_path + process.env.ZIPPER_TEMPFILEMARKEREXTENTION))));
         
         for (const filesKey in files) {
             const file = files[filesKey];
@@ -532,7 +568,15 @@ async function Zipper_CreateTempFileMarker(zipPath){
 /*Removes the temp file marker for the zip file residing in the provided path, removing the marker indicates that the file was written without errors*/
 async function Zipper_RemoveTempFileMarker(zipPath){
     return new Promise (async (resolve,reject) => {
-        const response_msg = await RemoveFile_WithErrors(zipPath+process.env.ZIPPER_TEMPFILEMARKEREXTENTION).catch((err) => LogErrorMessage(err.message,err));
+        const fullFilePath = zipPath + process.env.ZIPPER_TEMPFILEMARKEREXTENTION;
+        
+        // check if it even exists
+        const doesPathExist = await CheckIFPathExists(fullFilePath);
+        if (!doesPathExist){
+            return resolve("Successfully removed temp file marker");
+        }
+        
+        const response_msg = await RemoveFile_WithErrors(fullFilePath).catch((err) => LogErrorMessage(err.message,err));
         if (!response_msg){
             return reject("Failed to remove temp file marker");
         }
