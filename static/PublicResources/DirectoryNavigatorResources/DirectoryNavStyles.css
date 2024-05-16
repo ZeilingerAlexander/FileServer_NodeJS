@@ -129,6 +129,12 @@ td:first-child + td + td + td {
 .downloadButton:disabled[download_isDirectory],[disabled][download_isDirectory]{
     background-color: lightgray;
 }
+.downloadButton:disabled[permanently_disabled]{
+    background-color: red;
+}
+.downloadButton:disabled[successfully_used]{
+    background-color: green;
+}
 .buttons {
     display: flex;
     justify-content: flex-end;

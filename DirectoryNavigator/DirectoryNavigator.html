@@ -3,6 +3,7 @@
 <head>
     <link rel="stylesheet" media="screen, projection" type="text/css" href="/GET/GetPublicResource?val=DirectoryNavigatorResources/dirListing.css">
     <link rel="stylesheet" media="screen, projection" type="text/css" href="/GET/GetPublicResource?val=DirectoryNavigatorResources/DirectoryNavStyles.css">
+    <link rel="stylesheet" media="screen, projection" type="text/css" href="/GET/GetPublicResource?val=GlobalPageExtendors/PageExtendorStyles.css">
     <meta charset="UTF-8">
     <title>Directory Navigator</title>
 </head>
@@ -20,7 +21,7 @@
     <table>
         <thead>
         <tr>
-            <th class="sortable" data-sort="name">
+            <th class="sortable" data-sort="name" style="max-width: 550px; overflow: hidden">
                 <label>Name</label>
             </th>
             <th class="sortable" data-sort="size">
@@ -39,6 +40,7 @@
         </tbody>
     </table>
 </div>
+<iframe src="/GET/GetPublicResource?val=GlobalPageExtendors/footer.html" class="footerIframe" scrolling="none"></iframe>
 <!--#region scripts-->
 <!--auth script-->
 <script>
@@ -224,9 +226,21 @@
             const data = await fetch(link, {
                 method : "GET"
             }).catch((err) => console.error(err));
-            if (!data || !data.ok){
+            
+            if (!data){
                 return reject("Failed to fetch");
             }
+            if (data.status === 303){
+                // redirect
+                // TODO : remove the hard coded redirect here when we finally implement the backend solution for this
+                return resolve("redirecting");
+            }
+            if (!data.ok){
+                // permanently disable link
+                buttonRef.setAttribute("permanently_disabled", true);
+                return reject("Request Failed");
+            }
+
             
             // blob the data
             const data_blob = await data.blob().catch((err) => console.error(err));
@@ -244,9 +258,9 @@
             temp_download.remove();
             
             
-            // enable button again for further downloads, also disalbe the onbefreunload event
+            // show that the download was successful but dont enable button again to prevent accidential useless requests
             if (buttonRef){
-                buttonRef.removeAttribute("disabled");
+                buttonRef.setAttribute("successfully_used", true)
             }
             
             return resolve("completed download");
