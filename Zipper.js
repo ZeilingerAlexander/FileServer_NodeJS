@@ -91,11 +91,16 @@ export async function ZipDirectoryToPath(dir_to_zip, out_path){
             const stats = await fsp.stat(file).catch((err) => LogErrorMessage(err.message,err));
             if (stats && stats.isFile()){
                 const relativePath = path.relative(dir_to_zip, file);
-                archive.append(fs.createReadStream(file), {name : relativePath});
+                try{
+                    archive.append(fs.createReadStream(file), {name : relativePath});
+                }
+                catch (err){
+                    LogErrorMessage(err.message,err);
+                }
             }
         }
 
-        archive.finalize();
+        await archive.finalize();
     });
 }
 
