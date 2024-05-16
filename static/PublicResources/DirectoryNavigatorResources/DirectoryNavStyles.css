@@ -135,6 +135,9 @@ td:first-child + td + td + td {
 .downloadButton:disabled[successfully_used]{
     background-color: green;
 }
+.downloadButton:disabled:hover,[disabled][hover],[disabled]:hover{
+    cursor: default;
+}
 .buttons {
     display: flex;
     justify-content: flex-end;
