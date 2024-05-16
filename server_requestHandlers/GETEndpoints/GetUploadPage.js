@@ -1,5 +1,5 @@
 /*Handles getting the upload page*/
-import {HandleGetFile} from "../FileHandlers.js";
+import {HandleGetFile} from "../../FileHandler.js";
 import {LogErrorMessage} from "../../logger.js";
 
 export async function HandleGetUploadPage(req, res){

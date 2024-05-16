@@ -15,7 +15,7 @@ import {
 import {LogErrorMessage} from "../../logger.js";
 import {HandleRateLimit} from "../../RateLimiter/RateLimiter.js";
 import {HandleSimpleResultMessage} from "../../server.js";
-import {CreateDirectory, RemoveFile, WriteFileFromStaticPathToResult} from "../FileHandlers.js";
+import {CreateDirectory, RemoveFile, WriteFileFromStaticPathToResult} from "../../FileHandler.js";
 export async function HandlePostCreateZippedDirectory(req, res){
     return new Promise (async (resolve,reject) => {
         if (!req.accessLevel || req.accessLevel < 2){

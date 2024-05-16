@@ -6,7 +6,7 @@ import {
     IsPathDirectory
 } from "../../InputValidator.js";
 import {LogErrorMessage} from "../../logger.js";
-import {HandleGetFile} from "../FileHandlers.js";
+import {HandleGetFile} from "../../FileHandler.js";
 import {HandleSimpleResultMessage} from "../../server.js";
 
 export async function HandleGetPublicResource(req,res){

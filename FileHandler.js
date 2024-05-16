@@ -1,11 +1,11 @@
 // Handles Interaction With Files, this may not include some stat operations since they are mostly handled by InputValidator.js
 
-import {CheckIFPathExists, GetFullPathFromRelativePath, IsPathFile} from "../InputValidator.js";
-import {MIME_TYPES} from "../variables/mimeTypes.js";
+import {CheckIFPathExists, GetFullPathFromRelativePath, IsPathFile} from "./InputValidator.js";
+import {MIME_TYPES} from "./variables/mimeTypes.js";
 import * as path from "path";
 import {promises as fsp} from "fs";
 import * as fs from "fs";
-import {LogErrorMessage} from "../logger.js";
+import {LogErrorMessage} from "./logger.js";
 import {reject} from "bcrypt/promises.js";
 
 /*Handles Getting the File for the Provided Request, DO NOT CALL WITH UNCHECKED INPUT, THIS WILL NOT VALIDATE INPUT FOR YOU*/

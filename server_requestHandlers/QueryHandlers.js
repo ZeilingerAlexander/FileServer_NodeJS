@@ -2,7 +2,7 @@
 
 import {HandleGetDirectoryStructure} from "./GETEndpoints/GetDirectoryStructure.js";
 import {LogDebugMessage, LogErrorMessage} from "../logger.js";
-import {HandleNotFound} from "./FileHandlers.js";
+import {HandleNotFound} from "../FileHandler.js";
 import {HandleAuthorizationLoginOnPost, HandleLogoutUserOnPost} from "../Authorization/auth.js";
 import {HandleGetUploadPage} from "./GETEndpoints/GetUploadPage.js";
 import {HandleGetPublicResource} from "./GETEndpoints/GetPublicResource.js";

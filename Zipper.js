@@ -4,7 +4,7 @@ import {promises as fsp} from "fs";
 import * as fs from "fs";
 import * as path from "path";
 import {LogErrorMessage} from "./logger.js";
-import {RemoveFile_WithErrors} from "./server_requestHandlers/FileHandlers.js";
+import {RemoveFile_WithErrors} from "./FileHandler.js";
 
 // ...
 
