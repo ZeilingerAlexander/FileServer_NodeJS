@@ -2,154 +2,7 @@
 <html lang="en">
 <head>
     <link rel="stylesheet" media="screen, projection" type="text/css" href="/GET/GetPublicResource?val=DirectoryNavigatorResources/dirListing.css">
-    <style type="text/css">
-        :root {
-            font-family: sans-serif;
-            background-color: Field;
-        }
-        img {
-            border: 0;
-        }
-        th {
-            text-align: start;
-            white-space: nowrap;
-        }
-        th > a {
-            color: inherit;
-        }
-        table[order] > thead > tr > th {
-            cursor: pointer;
-        }
-        table[order] > thead > tr > th::after {
-            display: none;
-            width: .8em;
-            margin-inline-end: -.8em;
-            text-align: end;
-        }
-        table[order="asc"] > thead > tr > th::after {
-            content: "\2193"; /* DOWNWARDS ARROW (U+2193) */
-        }
-        table[order="desc"] > thead > tr > th::after {
-            content: "\2191"; /* UPWARDS ARROW (U+2191) */
-        }
-        table[order][order-by="0"] > thead > tr > th:first-child > a ,
-        table[order][order-by="1"] > thead > tr > th:first-child + th > a ,
-        table[order][order-by="2"] > thead > tr > th:first-child + th + th > a {
-            text-decoration: underline;
-        }
-        table[order][order-by="0"] > thead > tr > th:first-child::after ,
-        table[order][order-by="1"] > thead > tr > th:first-child + th::after ,
-        table[order][order-by="2"] > thead > tr > th:first-child + th + th::after {
-            display: inline-block;
-        }
-        table.remove-hidden > tbody > tr.hidden-object {
-            display: none;
-        }
-        td {
-            white-space: nowrap;
-        }
-        table.ellipsis {
-            width: 100%;
-            table-layout: fixed;
-            border-spacing: 0;
-        }
-        table.ellipsis > tbody > tr > td {
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        /* name */
-        /* name */
-        th:first-child {
-            padding-inline-end: 2em;
-        }
-        /* size */
-        th:first-child + th {
-            padding-inline-end: 1em;
-        }
-        td:first-child + td {
-            text-align: end;
-            padding-inline-end: 1em;
-        }
-        /* date */
-        td:first-child + td + td {
-            padding-inline-start: 1em;
-            padding-inline-end: .5em;
-        }
-        /* time */
-        td:first-child + td + td + td {
-            padding-inline-start: .5em;
-        }
-        .symlink {
-            font-style: italic;
-        }
-        .dir ,
-        .symlink ,
-        .file {
-            margin-inline-start: 20px;
-        }
-        .dir::before ,
-        .file::before{
-            margin-inline-end: 4px;
-            margin-inline-start: -20px;
-            max-width: 16px;
-            max-height: 16px;
-            vertical-align: middle;
-        }
-        .dir::before {
-            content: url(/GET/GetPublicResource?val=DirectoryNavigatorResources/folder.png);
-        }
-        .file::before{
-            content: url(/GET/GetPublicResource?val=DirectoryNavigatorResources/file.png);
-        }
-        .button {
-            display: inline-block;
-            padding: 8px 16px;
-            background-color: #4CAF50;
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            font-size: 16px;
-            margin: 4px 2px;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        .downloadButton{
-            display: inline-block;
-            background-color: lightskyblue;
-            color: black;
-            text-align: center;
-            text-decoration: none;
-            font-size: 16px;
-            cursor: pointer;
-            width: 200%;
-            border: transparent 0px;
-            border-radius: 4px;
-        }
-        .downloadButton:disabled,button[disabled]{
-            background-color: lightgray;
-        }
-        .downloadButton[download_isDirectory]{
-            background-color: orange;
-        }
-        .downloadButton:disabled[download_isDirectory],[disabled][download_isDirectory]{
-            background-color: lightgray;
-        }
-        .buttons {
-            display: flex;
-            justify-content: flex-end;
-        }
-        .searchbar{
-            width: 100%;
-            margin: 5px;
-        }
-        
-        @media only screen and (max-width: 500px) {
-            .hidden_for_mobile{
-                display: none;
-                visibility: hidden;
-            }
-        }
-    </style>
+    <link rel="stylesheet" media="screen, projection" type="text/css" href="/GET/GetPublicResource?val=DirectoryNavigatorResources/DirectoryNavStyles.css">
     <meta charset="UTF-8">
     <title>Directory Navigator</title>
 </head>
@@ -186,7 +39,7 @@
         </tbody>
     </table>
 </div>
-
+<!--#region scripts-->
 <!--auth script-->
 <script>
     console.log("loaded");
@@ -491,5 +344,6 @@
         });
     }
 </script>
+<!--#endregion-->
 </body>
 </html>
