@@ -3,7 +3,7 @@ import {CheckIFPathExists, GetAllFilePathsInDirectory} from "./InputValidator.js
 import {promises as fsp} from "fs";
 import * as fs from "fs";
 import * as path from "path";
-import {LogErrorMessage} from "./logger.js";
+import {LogDebugMessage, LogErrorMessage} from "./logger.js";
 import {RemoveFile_WithErrors} from "./FileHandler.js";
 
 // ...
@@ -68,18 +68,29 @@ export async function ZipDirectoryToPath(dir_to_zip, out_path){
             }
             return reject("Failed to compress to zip file");
         });
+        
+        archive.on("warning", async function (warn) {
+            LogDebugMessage(warn);
+        });
 
         // create marker before piping to output since that will already create the zip file which might or might not fail
         const zipper_create_respone = await Zipper_CreateTempFileMarker(out_path).catch((err) => LogErrorMessage(err.message, err));
         if (!zipper_create_respone){
             return reject("Failed to create temp file marker");
         }
+        
+        try{
+            archive.pipe(out);
+        }
+        catch (err){
+            LogErrorMessage(err.message,err);
+            return reject("Failed to pipe");
+        }
 
-        archive.pipe(out);
 
         // get all paths inside directory
         let files = await GetAllFilePathsInDirectory(dir_to_zip);
-
+        
         // remove possible self-read entries
         files = files.filter((filename) =>
             !((path.basename(filename) === path.basename((out_path)) || path.basename(filename) === path.basename(out_path + process.env.ZIPPER_TEMPFILEMARKEREXTENTION))));
@@ -99,6 +110,7 @@ export async function ZipDirectoryToPath(dir_to_zip, out_path){
                 }
             }
         }
+
 
         await archive.finalize();
     });
