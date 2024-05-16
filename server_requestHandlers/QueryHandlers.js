@@ -1,7 +1,7 @@
 // Handlers for queries (not files/dirs)
 
 import {HandleGetDirectoryStructure} from "./GETEndpoints/GetDirectoryStructure.js";
-import {LogErrorMessage} from "../logger.js";
+import {LogDebugMessage, LogErrorMessage} from "../logger.js";
 import {HandleNotFound} from "./FileHandlers.js";
 import {HandleAuthorizationLoginOnPost, HandleLogoutUserOnPost} from "../Authorization/auth.js";
 import {HandleGetUploadPage} from "./GETEndpoints/GetUploadPage.js";
@@ -40,7 +40,7 @@ export async function HandleQuery(req, res){
         if (!success_message){
             return reject("Request endpoint failed");
         }
-        return resolve("Successfully resolved request endpoint");
+        return resolve(`Successfully resolved request endpoint with message : ${success_message}`);
     });
 }
 
