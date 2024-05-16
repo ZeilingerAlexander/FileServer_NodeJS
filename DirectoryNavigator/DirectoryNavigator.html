@@ -201,10 +201,23 @@
                 fullDownloadPath = GetFullPathFromPath(download_path);
             }
             console.log(fullDownloadPath);
-            const response_msg = await StartDownload(fullDownloadPath, this, download_name).catch((err) => console.error(err));
+            // TODO : completly overhal the system for zip downloads
+            // folder download -> post zip endpoint + redirecto to zip exports page, remove the return file thing entirely
+            // add get endpoint for getting zipped files, in that endpoint make sure to validate if the file is ready or not
+            // normal file download -> redirect to page of resource
+            // TODO : add zip exports page 
+            // contains list of files under zip exports and if they are ready or not
+            // links them to the above mentioned get zip exports endpoint
+            // add an update script that silently updates the entries every 30 seconds or something
+            // TODO : (extra) look into the nameing of some files and why they cant be downloaded
+            
+            
+            window.open(fullDownloadPath);
+            
+            /*const response_msg = await StartDownload(fullDownloadPath, this, download_name).catch((err) => console.error(err));
             if (!response_msg){
                 return reject("Failed to download");
-            }
+            }*/
             return resolve("Download complete");
             
         });
