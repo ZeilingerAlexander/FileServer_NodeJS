@@ -1,7 +1,8 @@
 // Handles interaction with directories
 
 /*Handles getting the Directory Navigator page, call this whenever user goes to directory*/
-import {HandleGetFile} from "../FileHandler.js";
+
+import {HandleGetFile} from "./HandleGetFile.js";
 
 export async function HandleGetDirectoryNavigator(req, res){
     return new Promise( async (resolve, reject) => {

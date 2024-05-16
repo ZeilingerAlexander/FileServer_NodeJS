@@ -1,6 +1,6 @@
 /*Handles getting the upload page*/
-import {HandleGetFile} from "../../FileHandler.js";
 import {LogErrorMessage} from "../../logger.js";
+import {HandleGetFile} from "../HandleGetFile.js";
 
 export async function HandleGetUploadPage(req, res){
     return new Promise (async (resolve,reject) => {

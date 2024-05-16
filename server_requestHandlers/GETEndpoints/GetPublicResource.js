@@ -6,8 +6,8 @@ import {
     IsPathDirectory
 } from "../../InputValidator.js";
 import {LogErrorMessage} from "../../logger.js";
-import {HandleGetFile} from "../../FileHandler.js";
 import {HandleSimpleResultMessage} from "../../server.js";
+import {HandleGetFile} from "../HandleGetFile.js";
 
 export async function HandleGetPublicResource(req,res){
     return new Promise (async (resolve,reject) => {
