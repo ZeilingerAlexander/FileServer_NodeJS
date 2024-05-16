@@ -122,7 +122,17 @@
             font-size: 16px;
             cursor: pointer;
             width: 200%;
+            border: transparent 0px;
             border-radius: 4px;
+        }
+        .downloadButton:disabled,button[disabled]{
+            background-color: lightgray;
+        }
+        .downloadButton[download_isDirectory]{
+            background-color: orange;
+        }
+        .downloadButton:disabled[download_isDirectory],[disabled][download_isDirectory]{
+            background-color: lightgray;
         }
         .buttons {
             display: flex;
@@ -285,7 +295,7 @@
         //#endregion
         //#region Download Cell
         const donwloadCell = document.createElement("td");
-        const downloadLink = document.createElement("a");
+        const downloadLink = document.createElement("button");
         downloadLink.textContent = "⇲";
         downloadLink.onclick = on_downloadClicked;
         downloadLink.setAttribute("DownloadName", name);
@@ -295,7 +305,6 @@
         downloadLink.title = "Download";
         // if directory call to get zipped file instead by setting the attribute is directory
         if (isDirectory){
-            downloadLink.style.backgroundColor = "orange";
             downloadLink.setAttribute("download_isDirectory", "true");
         }
         donwloadCell.appendChild(downloadLink);
@@ -351,6 +360,9 @@
     async function StartDownload(link, buttonRef, filename){
         return new Promise (async (resolve,reject) => {
             // disable button until download complete
+            console.log(buttonRef);
+            console.log(buttonRef);
+            console.log(buttonRef);
             if (buttonRef){
                 buttonRef.setAttribute("disabled", true);
             }
@@ -379,7 +391,7 @@
             temp_download.remove();
             
             
-            // enable button again for further downloads
+            // enable button again for further downloads, also disalbe the onbefreunload event
             if (buttonRef){
                 buttonRef.removeAttribute("disabled");
             }
