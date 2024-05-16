@@ -103,7 +103,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
         let ExistingMatch = false;
 
         // check if it already exists if so use that instead of creating new one, this will also delete all deprecated ones if any come up
-        const directoryStructure = await GetDirectoryStructure(full_zip_userDirecotry_path);
+        const directoryStructure = await GetDirectoryStructure(full_zip_userDirecotry_path).catch((err) => LogErrorMessage(err.message,err));
         for (const directoryStructureKey in directoryStructure) {
             const entry = directoryStructure[directoryStructureKey];
             if (entry.name.startsWith(full_dir_parsed_name)){
