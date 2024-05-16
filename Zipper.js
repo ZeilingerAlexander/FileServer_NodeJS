@@ -9,7 +9,7 @@ import {RemoveFile_WithErrors} from "./FileHandler.js";
 // ...
 
 // will contain files currently being zipped by zipper
-let Zipper_FilesCurrentlyBeingZipped = [];
+let Zipper_FilesCurrentlyBeingZipped = new Set();
 
 
 /*Zips the Provided Directory to the provided output path, resolves when complete, rejects if any values empty or out_path already existing
@@ -117,13 +117,22 @@ export async function ZipDirectoryToPath(dir_to_zip, out_path){
 }
 
 /*Creates a temp file marker for the zip file residing on provided path, this marker indicates that the file is currently being written
+also adds the marker to temp paths, only adds it if its not already added (this may cause conflicts so check beforehand if it exists)
 * rejects on error*/
 async function Zipper_CreateTempFileMarker(zipPath){
     return new Promise(async (resolve,reject) => {
-        fs.writeFile(zipPath+process.env.ZIPPER_TEMPFILEMARKEREXTENTION, "", err => {
+        const full_path = zipPath+process.env.ZIPPER_TEMPFILEMARKEREXTENTION;
+        fs.writeFile(full_path, "", err => {
             if (err){
                 LogErrorMessage(err.message, err);
                 return reject("Failed to create temp file");
+            }
+            if (!Zipper_FilesCurrentlyBeingZipped.has(zipPath)){
+                Zipper_FilesCurrentlyBeingZipped.add(zipPath);
+            }
+            else{
+                LogDebugMessage("Zip path already existed in memory storage of files already being created, " +
+                    "make sure to implement a check beforehand since this may cause issues");
             }
             return resolve("Wrote file successfully");
         });
@@ -135,6 +144,11 @@ async function Zipper_RemoveTempFileMarker(zipPath){
     return new Promise (async (resolve,reject) => {
         const fullFilePath = zipPath + process.env.ZIPPER_TEMPFILEMARKEREXTENTION;
 
+        // remove from in-memory storage
+        if (Zipper_FilesCurrentlyBeingZipped.has(zipPath)){
+            Zipper_FilesCurrentlyBeingZipped.delete(zipPath);
+        }
+        
         // check if it even exists
         const doesPathExist = await CheckIFPathExists(fullFilePath);
         if (!doesPathExist){
@@ -149,11 +163,23 @@ async function Zipper_RemoveTempFileMarker(zipPath){
     });
 }
 
-/*Checks if the file pointing to the provided path is ready to be downloaded and doesnt have a marker, never rejects only resolves true/false*/
-export async function Zipper_CheckIfFileISReady(file_path){
+/*Checks if the file at file_path location has an associated file-not-ready marker, never rejects only resolves (true/false) -> true if marker*/
+export async function Zipper_CheckIfFileHasFileMarker(file_path){
     return new Promise (async (resolve) => {
-        const fileExist = await CheckIFPathExists(file_path+process.env.ZIPPER_TEMPFILEMARKEREXTENTION).catch((err) => LogErrorMessage(err.message,err));
-        if (!fileExist){
+        const fullfilepath = file_path+process.env.ZIPPER_TEMPFILEMARKEREXTENTION;
+        const fileExist = await CheckIFPathExists(fullfilepath).catch((err) => LogErrorMessage(err.message,err));
+        if (fileExist){
+            return resolve(true);
+        }
+        return resolve(false);
+    });
+}
+
+/*Checkfs if the file at file_path location has no associated marker inside the in-memory storage for currently being created files
+* never rejects only resolves (true/false) -> true if entry found*/
+export async function Zipper_CheckIfFileHasInMemoryMarker(file_path){
+    return new Promise (async (resolve) => {
+        if (Zipper_FilesCurrentlyBeingZipped.has(file_path)){
             return resolve(true);
         }
         return resolve(false);
