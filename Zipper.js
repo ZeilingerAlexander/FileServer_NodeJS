@@ -70,7 +70,7 @@ export async function ZipDirectoryToPath(dir_to_zip, out_path){
         });
         
         archive.on("warning", async function (warn) {
-            LogDebugMessage(warn);
+            LogDebugMessage(`Received warning from zip-archiver (archiver) : ${warn}`);
         });
 
         // create marker before piping to output since that will already create the zip file which might or might not fail

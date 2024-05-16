@@ -39,7 +39,7 @@ async function on_ServerRequest(req, res){
         await HandleUnauthorized(req, res);
         return;
     }
-    await LogDebugMessage(access);
+    await LogDebugMessage(`Request access level : ${access.accessLevel}, userid : ${access.userID}`);
     
     // set the access level of the request to be used by functions later down the line, also set the user id
     req.accessLevel = access.accessLevel;

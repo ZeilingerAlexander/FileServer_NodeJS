@@ -14,7 +14,6 @@ import archiver from "archiver";
 * THIS DOES NOT VALIDATE THE PATH
 * Make sure to check against path traversal since when combining pathx with ../../ it goes outsize*/
 export function GetFullPathFromRelativePath(relativePath){
-    LogDebugMessage(relativePath);
     return path.join(process.env.STATIC_PATH.toString(), relativePath.toString());
 }
 
@@ -87,7 +86,7 @@ export async function IsPathDirectory(path){
 /*Checks if a given path is either a file or directory, never rejects only resolves true/false*/
 export async function CheckIFPathExists(path){
     return new Promise(async (resolve) => {
-        const stats = await fsp.lstat(path).catch((err) => LogErrorMessage(err.message,err));
+        const stats = await fsp.lstat(path).catch((err) => {});
         if (!stats){return resolve(false);}
         if (!stats.isFile() && !stats.isDirectory()){
             return resolve(false);
