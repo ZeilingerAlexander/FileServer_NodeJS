@@ -9,13 +9,18 @@ import {
     GetValidatedUserRelativePathFromRequestPath
 } from "../../InputValidator.js";
 import {
-    ZipDirectoryToPath,
-    Zipper_CheckIfFileISReady
-} from  "../../Zipper.js"
+    ZipDirectoryToPath, Zipper_CheckIfFileHasInMemoryMarker,
+    Zipper_CheckIfFileHasFileMarker, Zipper_FilesCurrentlyBeingZipped
+} from "../../Zipper.js"
 import {LogErrorMessage} from "../../logger.js";
 import {HandleRateLimit} from "../../RateLimiter/RateLimiter.js";
 import {HandleSimpleResultMessage} from "../../server.js";
-import {CreateDirectory, RemoveFile, WriteFileFromStaticPathToResult} from "../../FileHandler.js";
+import {
+    CreateDirectory,
+    RemoveFile,
+    RemoveFile_WithErrors,
+    WriteFileFromStaticPathToResult
+} from "../../FileHandler.js";
 export async function HandlePostCreateZippedDirectory(req, res){
     return new Promise (async (resolve,reject) => {
         if (!req.accessLevel || req.accessLevel < 2){
@@ -106,22 +111,48 @@ export async function HandlePostCreateZippedDirectory(req, res){
         let ExistingMatch = false;
 
         // check if it already exists if so use that instead of creating new one, this will also delete all deprecated ones if any come up
-        const directoryStructure = await GetDirectoryStructure(full_zip_userDirecotry_path).catch((err) => LogErrorMessage(err.message,err));
-        for (const directoryStructureKey in directoryStructure) {
-            const entry = directoryStructure[directoryStructureKey];
-            if (entry.name.startsWith(full_dir_parsed_name)){
-                // file at least starts with expected name now validate date
-                if (entry.name === fullExpectedZipFileNameRelative){
-                    ExistingMatch = true;
-                    break;
+        if (await CheckIFPathExists(fullExpectedZipFileNameStatic)){
+            // file exists, check if file has file-marker
+            if (await Zipper_CheckIfFileHasFileMarker(fullExpectedZipFileNameStatic)){
+                // file has a file marker, check if it has a memory marker, if not it means that its a leftover from a previos attempt at creating it
+                // if thats the case try removing it, if that succeeds continue with download
+                if (await Zipper_CheckIfFileHasInMemoryMarker(fullExpectedZipFileNameStatic)){
+                    // file has in-memory marker that means everything is fine and just return a response redirecting
+                    await HandleSimpleResultMessage(res, 303, "file already downloading, redirecting").catch((err) => LogErrorMessage(err.message,err));
+                    // TODO : FIx redirect to include actual redirect in body for frontend to auto-redirect
+                    return resolve("completed handling simple result 303 saying file is already being downloaded, redirecting");
                 }
                 else{
-                    // not matching so its an older version, remove it
-                    await RemoveFile(fullExpectedZipFileNameStatic);
+                    // file has file-marker but no in-memory marker meaning that its a leftover from a bad previos attempt, try removing it
+                    const file_marker_remove_response = await RemoveFile_WithErrors(fullExpectedZipFileNameStatic)
+                        .catch((err) => LogErrorMessage(err.message,err));
+                    const file_zip_remove_response = await RemoveFile_WithErrors(fullExpectedZipFileNameStatic+process.env.ZIPPER_TEMPFILEMARKEREXTENTION)
+                        .catch((err) => LogErrorMessage(err.message,err));
+                    
+                    if (!file_zip_remove_response || !file_marker_remove_response){
+                        // failed to remove one of both, dont do anything further since that issue might be very bad and further attempts will probably not fix that
+                        await HandleSimpleResultMessage(res, 500, "Failed to remove leftovers from previous attempts at getting the file");
+                        LogErrorMessage("Failed to remove leftovers from previous attempts at getting the file");
+                        return resolve("Failed to send zip file since leftovers couldnt be removed properly, " +
+                            "still sent async simple response to client which might have also failed (probably not)");
+                    }
                 }
             }
+            else{
+                // file exists without any file markers but may have in-memory markers, if it does dont return it
+                if (await Zipper_CheckIfFileHasInMemoryMarker(fullExpectedZipFileNameStatic)){
+                    // in-memory markers exist so return redirect since it is still being written
+                    await HandleSimpleResultMessage(res, 303, "file already downloading, redirecting").catch((err) => LogErrorMessage(err.message,err));
+                    // TODO : FIx redirect to include actual redirect in body for frontend to auto-redirect
+                    return resolve("completed handling simple result 303 saying file is already being downloaded, redirecting");
+                }
+                // that also didnt catch on so just leave it up for further code to decide what to do with the request
+                ExistingMatch = true;
+            }
         }
-
+        
+        
+        
         // if existing match use that file instead of creating new one
         if (ExistingMatch){
             // check the filestats for size then decide if to download directly or to shift to the zipped directories
@@ -130,8 +161,9 @@ export async function HandlePostCreateZippedDirectory(req, res){
                 return reject("Failed to get filestats for should-be existing file");
             }
             
-            // check if file is not ready
-            if (!await Zipper_CheckIfFileISReady(fullExpectedZipFileNameStatic)){
+            // check if file is not ready, check it via file marker since we return beforehand if in-memory marker is set
+            // but we keep going if it only has file marker to allow for re-trying
+            if (await Zipper_CheckIfFileHasFileMarker(fullExpectedZipFileNameStatic)){
                 // file isnt ready, do not reject since that will produce a response on its own
                 await HandleFileNotReadyResponse(res);
                 return resolve("File not ready yet, not sending file");
