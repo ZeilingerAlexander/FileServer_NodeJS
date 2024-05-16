@@ -202,6 +202,8 @@ export async function HandlePostCreateZippedDirectory(req, res){
                 await HandleSimpleResultMessage(res, 500, "Failed to write zip File to result");
                 return resolve("Failed to send file to client");
             }
+            
+            return resolve("Successfully wrote zipped file to response");
         }
     });
 }
