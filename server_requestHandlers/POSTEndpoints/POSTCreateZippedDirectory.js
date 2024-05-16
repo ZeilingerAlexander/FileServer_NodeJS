@@ -1,18 +1,21 @@
 /*Handles getting zipped directory request*/
 import * as path from "path";
 import {
-    CheckIFPathExists, CreateDirectory, GetDirectorySize,
+    CheckIFPathExists, GetDirectorySize,
     GetDirectoryStructure,
     GetFileStats,
     GetFullPathFromRelativePath, GetImportantDirectoryInfo_Size_LastModifierz,
     GetSingleURLParameter_ReturnBadRequestIfNotFound,
-    GetUrlParameters,
-    GetValidatedUserRelativePathFromRequestPath, RemoveFile, ZipDirectoryToPath, Zipper_CheckIfFileISReady
+    GetValidatedUserRelativePathFromRequestPath
 } from "../../InputValidator.js";
+import {
+    ZipDirectoryToPath,
+    Zipper_CheckIfFileISReady
+} from  "../../Zipper.js"
 import {LogErrorMessage} from "../../logger.js";
 import {HandleRateLimit} from "../../RateLimiter/RateLimiter.js";
 import {HandleSimpleResultMessage} from "../../server.js";
-import {WriteFileFromStaticPathToResult} from "../FileHandlers.js";
+import {CreateDirectory, RemoveFile, WriteFileFromStaticPathToResult} from "../FileHandlers.js";
 export async function HandlePostCreateZippedDirectory(req, res){
     return new Promise (async (resolve,reject) => {
         if (!req.accessLevel || req.accessLevel < 2){

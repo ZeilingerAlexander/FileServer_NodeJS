@@ -1,8 +1,9 @@
-// Handles Interaction With Files
+// Handles Interaction With Files, this may not include some stat operations since they are mostly handled by InputValidator.js
 
-import {GetFullPathFromRelativePath} from "../InputValidator.js";
+import {CheckIFPathExists, GetFullPathFromRelativePath, IsPathFile} from "../InputValidator.js";
 import {MIME_TYPES} from "../variables/mimeTypes.js";
 import * as path from "path";
+import {promises as fsp} from "fs";
 import * as fs from "fs";
 import {LogErrorMessage} from "../logger.js";
 import {reject} from "bcrypt/promises.js";
@@ -70,5 +71,44 @@ export async function HandleUnauthorized(req,res){
         else{
             return reject("Failed to get 401 page");
         }
+    });
+}
+
+/*Creates a folder with the provided path*/
+export async function CreateDirectory(dir_path){
+    await fsp.mkdir(dir_path).catch((err) => LogErrorMessage(err.message,err));
+}
+
+/*Removes the provided path if it points to a file never rejects*/
+export async function RemoveFile(file_path){
+    return new Promise (async (resolve) => {
+        if (await CheckIFPathExists(file_path).catch((err) => LogErrorMessage(err.message,err)) &&
+            await IsPathFile(file_path).catch((err) => LogErrorMessage(err.message,err))){
+
+            await fsp.unlink(file_path).catch((err) => LogErrorMessage(err.message,err));
+        }
+        return resolve("finished unlinking");
+    });
+}
+
+/*Removes the provided path if ti points to a file, rejects on any failure*/
+export async function RemoveFile_WithErrors(file_path){
+    return new Promise (async (resolve,reject) => {
+        const DoesPathExist = await CheckIFPathExists(file_path).catch((err) => LogErrorMessage(err.message,err));
+        if (DoesPathExist === false){
+            return reject("Failed to determine if path exists");
+        }
+        const isPathFile = await IsPathFile(file_path).catch((err) => LogErrorMessage(err.message,err));
+        if (isPathFile === undefined){
+            return reject("Failed to determine if path is file");
+        }
+
+        if (DoesPathExist && isPathFile){
+            const response_msg = await fsp.unlink(file_path).catch((err) => LogErrorMessage(err.message,err));
+            if (!response_msg){
+                return reject("Failed to unlink file");
+            }
+        }
+        return resolve("finished unlinking");
     });
 }
