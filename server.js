@@ -161,13 +161,30 @@ async function HandleGetContent(req,res){
 }
 
 
-/*Handles returning a simple specified result message*/
+/*Handles returning a simple specified result message, rejects on empty result or statuscode
+* writes the statuscode to head and message to body using end(), which also ends the result stream*/
 export async function HandleSimpleResultMessage(res, statusCode, message){
     return new Promise(async (resolve,reject) => {
-        if (!res || !statusCode || !message){return reject("cant call on empty parms");}
+        if (!res || !statusCode){return reject("cant call on empty parms");}
         
         res.writeHead(statusCode);
-        res.end(message);
+        if (message){
+            res. end(message);
+        }
         return resolve("completed handling simple result message");
+    });
+}
+
+/*Handles returning a temporary redirect (307) while setting the approipiate Location header for the readirection
+* rejects if res or url empty*/
+export async function HandleTemporaryRedirectionResult(res, url){
+    return new Promise (async (resolve,reject) => {
+        if (!res || !url){
+            return reject("Bad Parameters, check usage");
+        }
+
+        res.setHeader('Location', url);
+        await HandleSimpleResultMessage(res, 307);
+        return resolve("comppleted handling temporary redirect to url");
     });
 }

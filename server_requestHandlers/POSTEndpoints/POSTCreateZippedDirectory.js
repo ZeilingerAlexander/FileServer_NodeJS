@@ -119,7 +119,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
                 if (await Zipper_CheckIfFileHasInMemoryMarker(fullExpectedZipFileNameStatic)){
                     // file has in-memory marker that means everything is fine and just return a response redirecting
                     await HandleSimpleResultMessage(res, 303, "file already downloading, redirecting").catch((err) => LogErrorMessage(err.message,err));
-                    // TODO : FIx redirect to include actual redirect in body for frontend to auto-redirect
+                    // TODO : FIx redirect to include actual redirect in body for frontend to auto-redirect, use a 307 (remp redirect and set the Location header for the url HandleTemporaryRedirectionResult
                     return resolve("completed handling simple result 303 saying file is already being downloaded, redirecting");
                 }
                 else{
@@ -143,7 +143,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
                 if (await Zipper_CheckIfFileHasInMemoryMarker(fullExpectedZipFileNameStatic)){
                     // in-memory markers exist so return redirect since it is still being written
                     await HandleSimpleResultMessage(res, 303, "file already downloading, redirecting").catch((err) => LogErrorMessage(err.message,err));
-                    // TODO : FIx redirect to include actual redirect in body for frontend to auto-redirect
+                    // TODO : FIx redirect to include actual redirect in body for frontend to auto-redirect, use a 307 (remp redirect and set the Location header for the url HandleTemporaryRedirectionResult
                     return resolve("completed handling simple result 303 saying file is already being downloaded, redirecting");
                 }
                 // that also didnt catch on so just leave it up for further code to decide what to do with the request
@@ -241,7 +241,7 @@ if it fails it only failed to write simple result message so it would fail regar
 async function HandleFileTooLargeRedirectResponse(res){
     return new Promise (async (resolve) => {
         await HandleSimpleResultMessage(res, 303, "file too large, redirecting").catch((err) => LogErrorMessage(err.message,err));
-        // TODO : FIx redirect to include actual redirect in body for frontend to auto-redirect
+        // TODO : FIx redirect to include actual redirect in body for frontend to auto-redirect, use a 307 (remp redirect and set the Location header for the url HandleTemporaryRedirectionResult
         return resolve("completed handling simple result 303 saying file to olarge redirecting");
     });
 }
