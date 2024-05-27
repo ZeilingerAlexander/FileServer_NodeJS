@@ -62,6 +62,20 @@ export async function HandleUnauthorized(req,res){
 export async function CreateDirectory(dir_path){
     await fsp.mkdir(dir_path).catch((err) => LogErrorMessage(err.message,err));
 }
+/*Creates the directory and all directories before it if the provided directory path doesnt exist
+* rejects on failed creation*/
+export async function CreateDirectoryIfNotExist(dir_path){
+    return new Promise(async (resolve,reject) => {
+        if (!await CheckIFPathExists(dir_path)){
+            const create_response_msg = await fsp.mkdir(dir_path, {recursive : true}).catch((err) => LogErrorMessage(err.message,err));
+            if (!create_response_msg){
+                return reject("Failed to create directory");
+            }
+            return resolve("Successfully created directory or directory already existed");
+        }
+    });
+    
+}
 
 /*Removes the provided path if it points to a file never rejects*/
 export async function RemoveFile(file_path){

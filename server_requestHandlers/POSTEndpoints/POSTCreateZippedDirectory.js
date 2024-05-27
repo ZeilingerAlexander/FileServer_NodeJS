@@ -16,7 +16,7 @@ import {LogErrorMessage} from "../../logger.js";
 import {HandleRateLimit} from "../../RateLimiter/RateLimiter.js";
 import {HandleSimpleResultMessage, HandleTemporaryRedirectionResult} from "../../server.js";
 import {
-    CreateDirectory,
+    CreateDirectory, CreateDirectoryIfNotExist,
     RemoveFile,
     RemoveFile_WithErrors,
     WriteFileFromStaticPathToResult
@@ -91,7 +91,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
         let full_dir_parsed_name = dirLocation.replaceAll("/", "_");
         full_dir_parsed_name = full_dir_parsed_name.replaceAll("\\", "_");
         full_dir_parsed_name = full_dir_parsed_name.replaceAll("-", "_");
-        let full_dir_parsed_name_zip = full_dir_parsed_name + ".zip";
+        let full_dir_parsed_name_zip = dirLocation.replaceAll("/","").replaceAll("\\","") + ".zip";
 
         // The full zip directories, first the base path just being the one in env file then the user specific one, these are for validating before getting file stats
         const full_zip_BaseDirectoryPath = await GetFullPathFromRelativePath(process.env.USERZIPDIRECTORY_RELATIVEPATH);
@@ -109,7 +109,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
             CreateDirectory(full_zip_userDirecotry_path);
         }
 
-        // whether or not n existing match was found for the expected zip file path
+        // whether or not an existing match was found for the expected zip file path
         let ExistingMatch = false;
 
         // check if it already exists if so use that instead of creating new one, this will also delete all deprecated ones if any come up
@@ -120,8 +120,8 @@ export async function HandlePostCreateZippedDirectory(req, res){
                 // if thats the case try removing it, if that succeeds continue with download
                 if (await Zipper_CheckIfFileHasInMemoryMarker(fullExpectedZipFileNameStatic)){
                     // file has in-memory marker that means everything is fine and just return a response redirecting
-                    await HandleTemporaryRedirectionResult(res,"FAILURE").catch((err) => LogErrorMessage(err.message,err));
-                    return resolve("completed handling simple result 303 saying file too large redirecting");
+                    await HandleRedirectToZipPage(res);
+                    return resolve("completed handling temp redirect to zip page");
                     // TODO : FIx redirect to include actual redirect in body for frontend to auto-redirect, use a 307 (remp redirect and set the Location header for the url HandleTemporaryRedirectionResult
                 }
                 else{
@@ -144,8 +144,8 @@ export async function HandlePostCreateZippedDirectory(req, res){
                 // file exists without any file markers but may have in-memory markers, if it does dont return it
                 if (await Zipper_CheckIfFileHasInMemoryMarker(fullExpectedZipFileNameStatic)){
                     // in-memory markers exist so return redirect since it is still being written
-                    await HandleTemporaryRedirectionResult(res,"FAILURE").catch((err) => LogErrorMessage(err.message,err));
-                    return resolve("completed handling simple result 303 saying file too large redirecting");
+                    await HandleRedirectToZipPage(res);
+                    return resolve("completed handling temp redirect to zip page");
                     // TODO : FIx redirect to include actual redirect in body for frontend to auto-redirect, use a 307 (remp redirect and set the Location header for the url HandleTemporaryRedirectionResult
                 }
                 // that also didnt catch on so just leave it up for further code to decide what to do with the request
@@ -243,9 +243,17 @@ async function HandleFileNotReadyResponse(res){
 if it fails it only failed to write simple result message so it would fail regardless, this means that program should just exit*/
 async function HandleFileTooLargeRedirectResponse(res){
     return new Promise (async (resolve) => {
-        await HandleTemporaryRedirectionResult(res,"FAILURE").catch((err) => LogErrorMessage(err.message,err));
-        return resolve("completed handling simple result 303 saying file too large redirecting");
+        await HandleRedirectToZipPage(res);
+        return resolve("completed handling temp redirect to zip page");
         // TODO : FIx redirect to include actual redirect in body for frontend to auto-redirect, use a 307 (remp redirect and set the Location header for the url HandleTemporaryRedirectionResult
+    });
+}
+
+/*Handles redirecting to zip page, never rejects*/
+async function HandleRedirectToZipPage(res){
+    return new Promise (async (resolve) => {
+        await HandleTemporaryRedirectionResult(res,"/GET/GetUploadPage").catch((err) => LogErrorMessage(err.message,err));
+        return resolve("completed");
     });
 }
 
