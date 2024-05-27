@@ -122,7 +122,6 @@ export async function HandlePostCreateZippedDirectory(req, res){
                     // file has in-memory marker that means everything is fine and just return a response redirecting
                     await HandleRedirectToZipPage(res);
                     return resolve("completed handling temp redirect to zip page");
-                    // TODO : FIx redirect to include actual redirect in body for frontend to auto-redirect, use a 307 (remp redirect and set the Location header for the url HandleTemporaryRedirectionResult
                 }
                 else{
                     // file has file-marker but no in-memory marker meaning that its a leftover from a bad previos attempt, try removing it
@@ -146,7 +145,6 @@ export async function HandlePostCreateZippedDirectory(req, res){
                     // in-memory markers exist so return redirect since it is still being written
                     await HandleRedirectToZipPage(res);
                     return resolve("completed handling temp redirect to zip page");
-                    // TODO : FIx redirect to include actual redirect in body for frontend to auto-redirect, use a 307 (remp redirect and set the Location header for the url HandleTemporaryRedirectionResult
                 }
                 // that also didnt catch on so just leave it up for further code to decide what to do with the request
                 ExistingMatch = true;
@@ -245,7 +243,6 @@ async function HandleFileTooLargeRedirectResponse(res){
     return new Promise (async (resolve) => {
         await HandleRedirectToZipPage(res);
         return resolve("completed handling temp redirect to zip page");
-        // TODO : FIx redirect to include actual redirect in body for frontend to auto-redirect, use a 307 (remp redirect and set the Location header for the url HandleTemporaryRedirectionResult
     });
 }
 
