@@ -169,7 +169,10 @@ export async function HandleSimpleResultMessage(res, statusCode, message){
         
         res.writeHead(statusCode);
         if (message){
-            res. end(message);
+            res.end(message);
+        }
+        else{
+            res.end();
         }
         return resolve("completed handling simple result message");
     });
