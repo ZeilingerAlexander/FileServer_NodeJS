@@ -21,7 +21,7 @@ const QueryEndpoints = {
     PostLogoutUser : HandleLogoutUserOnPost,
     GetUploadPage : HandleGetUploadPage,
     GetPublicResource : HandleGetPublicResource,
-    PostCreateZippedDirectory : HandlePostCreateZippedDirectory
+    PostCreateZippedDirectory : HandlePostCreateZippedDirectory,
 }
 
 /*Handles a Query endpoint defined under QueryEndpoints, returns 404 if not found*/

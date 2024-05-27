@@ -10,7 +10,7 @@ import {
 } from "../../InputValidator.js";
 import {
     ZipDirectoryToPath, Zipper_CheckIfFileHasInMemoryMarker,
-    Zipper_CheckIfFileHasFileMarker
+    Zipper_CheckIfFileHasFileMarker, Zipper_GetFileReadyness_RemoveOldMarkers
 } from "../../Zipper.js"
 import {LogErrorMessage} from "../../logger.js";
 import {HandleRateLimit} from "../../RateLimiter/RateLimiter.js";
@@ -78,11 +78,9 @@ export async function HandlePostCreateZippedDirectory(req, res){
         }
 
         // apply extreme rate limiting if directory size bigger then max cutoff point
-        if (directorySize > process.env.RATELIMIT_BYTESIZE_CUTOFFPOINT_ZIPPEDDIRECTORIES){
-            if (await HandleRateLimit(req, res, 3)){
-                // rate limited
-                return resolve("rate limited");
-            }
+        if (directorySize > process.env.RATELIMIT_BYTESIZE_CUTOFFPOINT_ZIPPEDDIRECTORIES && await HandleRateLimit(req, res, 3)){
+            // rate limited
+            return resolve("rate limited");
         }
 
         // check if a zip file with the name already exists under the zip user directory, replace escape characters with _
@@ -113,45 +111,19 @@ export async function HandlePostCreateZippedDirectory(req, res){
         let ExistingMatch = false;
 
         // check if it already exists if so use that instead of creating new one, this will also delete all deprecated ones if any come up
-        if (await CheckIFPathExists(fullExpectedZipFileNameStatic)){
-            // file exists, check if file has file-marker
-            if (await Zipper_CheckIfFileHasFileMarker(fullExpectedZipFileNameStatic)){
-                // file has a file marker, check if it has a memory marker, if not it means that its a leftover from a previos attempt at creating it
-                // if thats the case try removing it, if that succeeds continue with download
-                if (await Zipper_CheckIfFileHasInMemoryMarker(fullExpectedZipFileNameStatic)){
-                    // file has in-memory marker that means everything is fine and just return a response redirecting
-                    await HandleRedirectToZipPage(res);
-                    return resolve("completed handling temp redirect to zip page");
-                }
-                else{
-                    // file has file-marker but no in-memory marker meaning that its a leftover from a bad previos attempt, try removing it
-                    const file_marker_remove_response = await RemoveFile_WithErrors(fullExpectedZipFileNameStatic)
-                        .catch((err) => LogErrorMessage(err.message,err));
-                    const file_zip_remove_response = await RemoveFile_WithErrors(fullExpectedZipFileNameStatic+process.env.ZIPPER_TEMPFILEMARKEREXTENTION)
-                        .catch((err) => LogErrorMessage(err.message,err));
-                    
-                    if (!file_zip_remove_response || !file_marker_remove_response){
-                        // failed to remove one of both, dont do anything further since that issue might be very bad and further attempts will probably not fix that
-                        await HandleSimpleResultMessage(res, 500, "Failed to remove leftovers from previous attempts at getting the file");
-                        LogErrorMessage("Failed to remove leftovers from previous attempts at getting the file");
-                        return resolve("Failed to send zip file since leftovers couldnt be removed properly, " +
-                            "still sent async simple response to client which might have also failed (probably not)");
-                    }
-                }
-            }
-            else{
-                // file exists without any file markers but may have in-memory markers, if it does dont return it
-                if (await Zipper_CheckIfFileHasInMemoryMarker(fullExpectedZipFileNameStatic)){
-                    // in-memory markers exist so return redirect since it is still being written
-                    await HandleRedirectToZipPage(res);
-                    return resolve("completed handling temp redirect to zip page");
-                }
-                // that also didnt catch on so just leave it up for further code to decide what to do with the request
-                ExistingMatch = true;
-            }
+        const FileReadyLevel = await Zipper_GetFileReadyness_RemoveOldMarkers(fullExpectedZipFileNameStatic);
+        if (FileReadyLevel === 1){
+            // file ready level is 1  so it means its  ready, meaning that we just use that
+            ExistingMatch = true;
+        }else if (FileReadyLevel === 2){
+            // file ready level is 2 so we just redirect
+            await HandleRedirectToZipPage(res);
+            return resolve("completed handling redirect to zip page");
         }
-        
-        
+        else{
+            // file is not ready so just set existing match to false
+            ExistingMatch = false;
+        }
         
         // if existing match use that file instead of creating new one
         if (ExistingMatch){
@@ -249,7 +221,7 @@ async function HandleFileTooLargeRedirectResponse(res){
 /*Handles redirecting to zip page, never rejects*/
 async function HandleRedirectToZipPage(res){
     return new Promise (async (resolve) => {
-        await HandleTemporaryRedirectionResult(res,"/GET/GetUploadPage").catch((err) => LogErrorMessage(err.message,err));
+        await HandleTemporaryRedirectionResult(res,"/GET/GetPublicResource?val=/Zipper/ZipExportsViewer.html").catch((err) => LogErrorMessage(err.message,err));
         return resolve("completed");
     });
 }

@@ -5,6 +5,7 @@ import * as fs from "fs";
 import * as path from "path";
 import {LogDebugMessage, LogErrorMessage} from "./logger.js";
 import {RemoveFile_WithErrors} from "./FileHandler.js";
+import {HandleSimpleResultMessage} from "./server.js";
 
 // ...
 
@@ -183,5 +184,53 @@ export async function Zipper_CheckIfFileHasInMemoryMarker(file_path){
             return resolve(true);
         }
         return resolve(false);
+    });
+}
+
+/*Returns how ready the file is to be used, 1 : fully ready, 2 : still being written, 3 : doesnt exist
+* never rejects, on read errors just returns 3 as the default, also removes leftovers from badly written files by removing file markers if in memory exists but not visa versa*/
+export async function Zipper_GetFileReadyness_RemoveOldMarkers(static_file_path) {
+    return new Promise(async (resolve, reject) => {
+        // check for existance
+        if (!await CheckIFPathExists(static_file_path)) {
+            LogDebugMessage("Determined File readyness to be 3 since it doesnt exist")
+            return resolve(3);
+        }
+        const HasInMemoryMarker = await Zipper_CheckIfFileHasInMemoryMarker(static_file_path);
+        const HasDiskMarker = await Zipper_CheckIfFileHasFileMarker(static_file_path);
+
+        if (HasInMemoryMarker) {
+            LogDebugMessage("Determined File readyness to be 2 since it has an in-memory marker and they should normally get safely removed");
+            return resolve(2);
+        }
+        if (HasDiskMarker) {
+            // no memory marker but a disk marker means that write failed, remove it
+            const response_message = await RemoveBadFileWithMarkers(static_file_path).catch((err) => LogErrorMessage(err.message, err));
+            if (!response_message) {
+                // mark it as still being written since thats probably the case since most of the time its an access problem
+                return resolve(2);
+            }
+            // success removing it, return 3 indicating that it no longer exists
+            return resolve(3);
+        }
+
+        // no markers found and file exists so its probably ready
+        return resolve(1);
+    });
+}
+
+/*Attempts to remove a badly written file together with its markers, rejects on failure*/
+async function RemoveBadFileWithMarkers(static_file_path){
+    return new Promise (async (resolve,reject) => {
+        // file has file-marker but no in-memory marker meaning that its a leftover from a bad previos attempt, try removing it
+        const file_marker_remove_response = await RemoveFile_WithErrors(static_file_path)
+            .catch((err) => LogErrorMessage(err.message,err));
+        const file_zip_remove_response = await RemoveFile_WithErrors(static_file_path+process.env.ZIPPER_TEMPFILEMARKEREXTENTION)
+            .catch((err) => LogErrorMessage(err.message,err));
+        if (!file_zip_remove_response || !file_marker_remove_response){
+            // failed to remove one of both
+            return reject("failed to remove bad file with markers");
+        }
+        return resolve("successfully removed bad file together with its markers");
     });
 }
