@@ -9,9 +9,8 @@ import {
     GetValidatedUserRelativePathFromRequestPath
 } from "../../Validator.js";
 import {
-    ZipDirectoryToPath, Zipper_CheckIfFileHasInMemoryMarker,
-    Zipper_CheckIfFileHasFileMarker, Zipper_GetFileReadyness_RemoveOldMarkers
-} from "../../FileInteractions/Zipper.js"
+    CheckIfFileHasFileMarker, GetFileReadiness_RemoveOldMarkers
+} from "../../FileInteractions/FileLocker.js"
 import {LogErrorMessage} from "../../logger.js";
 import {HandleRateLimit} from "../../RateLimiter/RateLimiter.js";
 import {HandleSimpleResultMessage, HandleTemporaryRedirectionResult} from "../../server.js";
@@ -111,7 +110,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
         let ExistingMatch = false;
 
         // check if it already exists if so use that instead of creating new one, this will also delete all deprecated ones if any come up
-        const FileReadyLevel = await Zipper_GetFileReadyness_RemoveOldMarkers(fullExpectedZipFileNameStatic);
+        const FileReadyLevel = await GetFileReadiness_RemoveOldMarkers(fullExpectedZipFileNameStatic);
         if (FileReadyLevel === 1){
             // file ready level is 1  so it means its  ready, meaning that we just use that
             ExistingMatch = true;
@@ -138,7 +137,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
             
             // check if file is not ready, check it via file marker since we return beforehand if in-memory marker is set
             // but we keep going if it only has file marker to allow for re-trying
-            if (await Zipper_CheckIfFileHasFileMarker(fullExpectedZipFileNameStatic)){
+            if (await CheckIfFileHasFileMarker(fullExpectedZipFileNameStatic)){
                 // file isnt ready, do not reject since that will produce a response on its own
                 await HandleFileNotReadyResponse(res);
                 return resolve("File not ready yet, not sending file");
