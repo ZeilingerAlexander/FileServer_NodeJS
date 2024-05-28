@@ -4,7 +4,7 @@ import {
     GetFullPathFromRelativePath, GetSingleURLParameter_ReturnBadRequestIfNotFound,
     GetUrlParameters,
     IsPathDirectory
-} from "../../InputValidator.js";
+} from "../../Validator.js";
 import {LogErrorMessage} from "../../logger.js";
 import {HandleSimpleResultMessage} from "../../server.js";
 import {HandleGetFile} from "../HandleGetFile.js";

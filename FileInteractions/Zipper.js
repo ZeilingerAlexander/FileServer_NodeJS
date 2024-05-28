@@ -1,17 +1,16 @@
 import archiver from "archiver";
-import {CheckIFPathExists, GetAllFilePathsInDirectory} from "./InputValidator.js";
+import {CheckIFPathExists, GetAllFilePathsInDirectory} from "../Validator.js";
 import {promises as fsp} from "fs";
 import * as fs from "fs";
 import * as path from "path";
-import {LogDebugMessage, LogErrorMessage} from "./logger.js";
+import {LogDebugMessage, LogErrorMessage} from "../logger.js";
 import {RemoveFile_WithErrors} from "./FileHandler.js";
-import {HandleSimpleResultMessage} from "./server.js";
+import {HandleSimpleResultMessage} from "../server.js";
 
 // ...
 
 // will contain files currently being zipped by zipper
 let Zipper_FilesCurrentlyBeingZipped = new Set();
-
 
 /*Zips the Provided Directory to the provided output path, resolves when complete, rejects if any values empty or out_path already existing
 *  creates a temp file while the file is not finished zipping, removes it on completion*/

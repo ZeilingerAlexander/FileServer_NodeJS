@@ -1,13 +1,13 @@
 // the node server
 import * as http from "http";
 import {HandleQuery, IsRequestQueryRequest} from "./server_requestHandlers/QueryHandlers.js";
-import {GetValidatedUserRelativePathFromRequestPath, IsRelativePathFile} from "./InputValidator.js";
+import {GetValidatedUserRelativePathFromRequestPath, IsRelativePathFile} from "./Validator.js";
 import {HandleGetFile} from "./server_requestHandlers/HandleGetFile.js";
 import {HandleGetDirectoryNavigator} from "./server_requestHandlers/DirectoryHandlers.js";
 import {LogDebugMessage, LogErrorMessage} from "./logger.js";
 import {HandleAuthorizationOnRequest} from "./Authorization/auth.js";
 import {HandleRateLimit} from "./RateLimiter/RateLimiter.js";
-import {HandleNotFound, HandleUnauthorized} from "./FileHandler.js";
+import {HandleNotFound, HandleUnauthorized} from "./FileInteractions/FileHandler.js";
 
 /*Starts the node server*/
 export async function StartServer (){

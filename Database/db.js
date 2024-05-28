@@ -1,7 +1,7 @@
 import * as mysql from "mysql2";
 import {LogDebugMessage, LogErrorMessage} from "../logger.js";
 import {LogCreateAuthToken} from "./dblogger.js";
-import {DoesDataMatchHash, GenerateNewAccesToken, GetPasswordHash} from "../InputValidator.js";
+import {DoesDataMatchHash, GenerateNewAccesToken, GetPasswordHash} from "../Validator.js";
 import {hash} from "bcrypt";
 
 let dbcontext;

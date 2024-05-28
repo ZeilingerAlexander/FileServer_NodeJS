@@ -7,11 +7,11 @@ import {
     GetFullPathFromRelativePath, GetImportantDirectoryInfo_Size_LastModifierz,
     GetSingleURLParameter_ReturnBadRequestIfNotFound,
     GetValidatedUserRelativePathFromRequestPath
-} from "../../InputValidator.js";
+} from "../../Validator.js";
 import {
     ZipDirectoryToPath, Zipper_CheckIfFileHasInMemoryMarker,
     Zipper_CheckIfFileHasFileMarker, Zipper_GetFileReadyness_RemoveOldMarkers
-} from "../../Zipper.js"
+} from "../../FileInteractions/Zipper.js"
 import {LogErrorMessage} from "../../logger.js";
 import {HandleRateLimit} from "../../RateLimiter/RateLimiter.js";
 import {HandleSimpleResultMessage, HandleTemporaryRedirectionResult} from "../../server.js";
@@ -20,7 +20,7 @@ import {
     RemoveFile,
     RemoveFile_WithErrors,
     WriteFileFromStaticPathToResult
-} from "../../FileHandler.js";
+} from "../../FileInteractions/FileHandler.js";
 export async function HandlePostCreateZippedDirectory(req, res){
     return new Promise (async (resolve,reject) => {
         if (!req.accessLevel || req.accessLevel < 2){

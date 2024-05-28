@@ -1,13 +1,13 @@
-// Handles Interaction With Files, this may not include some stat operations since they are mostly handled by InputValidator.js
+// Handles Interaction With Files, this may not include some stat operations since they are mostly handled by Validator.js
 
-import {CheckIFPathExists, GetFullPathFromRelativePath, IsPathFile} from "./InputValidator.js";
-import {MIME_TYPES} from "./variables/mimeTypes.js";
+import {CheckIFPathExists, GetFullPathFromRelativePath, IsPathFile} from "../Validator.js";
+import {MIME_TYPES} from "../variables/mimeTypes.js";
 import * as path from "path";
 import {promises as fsp} from "fs";
 import * as fs from "fs";
-import {LogErrorMessage} from "./logger.js";
+import {LogErrorMessage} from "../logger.js";
 import {reject} from "bcrypt/promises.js";
-import {HandleGetFile} from "./server_requestHandlers/HandleGetFile.js";
+import {HandleGetFile} from "../server_requestHandlers/HandleGetFile.js";
 
 /*Does exactly what the name says pipes static path file stream to result, rejects on failure
 * THIS DOES NOT WRITE THE RESULT HEAD, ALL THIS DOES IS PIPE THE FILE STREAM DO NOT EXPECT ANYTHING ELSE*/
@@ -21,6 +21,14 @@ export async function WriteFileFromStaticPathToResult(res, static_path){
             await LogErrorMessage(ex.message, ex);
             return reject("Piping File Stream failed ", ex.message);
         } 
+    });
+}
+
+/*Safely gets the file read stream by first ensuring that the file is ready to be read
+* Returns a fs.createReadStream object for provided static file path. rejects on failure*/
+export async function GetFileReadstream_safely(static_path){
+    return new Promise (async (resolve,reject) => {
+        
     });
 }
 

@@ -1,9 +1,9 @@
 /*Handles Getting the File for the Provided Request, DO NOT CALL WITH UNCHECKED INPUT, THIS WILL NOT VALIDATE INPUT FOR YOU*/
 import {MIME_TYPES} from "../variables/mimeTypes.js";
 import * as path from "path";
-import {WriteFileFromStaticPathToResult} from "../FileHandler.js";
+import {WriteFileFromStaticPathToResult} from "../FileInteractions/FileHandler.js";
 import {LogErrorMessage} from "../logger.js";
-import {GetFullPathFromRelativePath} from "../InputValidator.js";
+import {GetFullPathFromRelativePath} from "../Validator.js";
 
 export async function HandleGetFile(req, res){
     return new Promise(async (resolve,reject) => {

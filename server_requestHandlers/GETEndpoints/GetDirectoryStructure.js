@@ -4,7 +4,7 @@ import {
     CheckIfPathIsAllowed, GetDirectoryStructure,
     GetFullPathFromRelativePath,
     GetUrlParameters, GetValidatedUserRelativePathFromRequestPath, IsPathDirectory
-} from "../../InputValidator.js";
+} from "../../Validator.js";
 import {LogErrorMessage} from "../../logger.js";
 import fs from "node:fs";
 import { promises as fsp } from "node:fs";

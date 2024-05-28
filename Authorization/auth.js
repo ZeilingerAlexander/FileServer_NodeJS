@@ -1,7 +1,7 @@
 
 /*Allowed Query endpoints that can be accessed by unauthorized users*/
 import {GetQueryRequestRawURL, IsRequestQueryRequest} from "../server_requestHandlers/QueryHandlers.js";
-import {GetParsedCookies, GetPasswordHash, GetRequestBody, GetUrlParameters} from "../InputValidator.js";
+import {GetParsedCookies, GetPasswordHash, GetRequestBody, GetUrlParameters} from "../Validator.js";
 import {LogDebugMessage, LogErrorMessage} from "../logger.js";
 import {
     ExpireAllAuthenticationTokensForUser,

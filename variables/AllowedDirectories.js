@@ -1,4 +1,4 @@
-import {GetFullPathFromRelativePath} from "../InputValidator.js";
+import {GetFullPathFromRelativePath} from "../Validator.js";
 import * as path from "path";
 
 /*Array of special Directory Paths that traversal validation will not be applied to*/
