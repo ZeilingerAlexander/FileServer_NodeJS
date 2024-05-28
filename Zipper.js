@@ -207,7 +207,8 @@ export async function Zipper_GetFileReadyness_RemoveOldMarkers(static_file_path)
             // no memory marker but a disk marker means that write failed, remove it
             const response_message = await RemoveBadFileWithMarkers(static_file_path).catch((err) => LogErrorMessage(err.message, err));
             if (!response_message) {
-                // mark it as still being written since thats probably the case since most of the time its an access problem
+                LogErrorMessage("Failed to remove file marker from from badly written file, this is not good, still continuing tho");
+                // return 2 since re-creating it will just cause more issues
                 return resolve(2);
             }
             // success removing it, return 3 indicating that it no longer exists
