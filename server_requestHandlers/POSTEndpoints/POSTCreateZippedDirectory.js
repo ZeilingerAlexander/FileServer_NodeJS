@@ -18,10 +18,11 @@ import {
     CreateDirectory, CreateDirectoryIfNotExist,
     RemoveFile,
     RemoveFile_WithErrors,
-    WriteFileFromStaticPathToResult
+    WriteFileFromStaticPathToResult, ZipDirectoryToPath
 } from "../../FileInteractions/FileHandler.js";
 export async function HandlePostCreateZippedDirectory(req, res){
     return new Promise (async (resolve,reject) => {
+        //#region verify request and get parse data from request
         if (!req.accessLevel || req.accessLevel < 2){
             return reject("Access level of at least 2 required");
         }
@@ -105,7 +106,8 @@ export async function HandlePostCreateZippedDirectory(req, res){
         if (!await CheckIFPathExists(full_zip_userDirecotry_path)){
             CreateDirectory(full_zip_userDirecotry_path);
         }
-
+        //#endregion
+        
         // whether or not an existing match was found for the expected zip file path
         let ExistingMatch = false;
 
@@ -170,7 +172,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
                 return resolve("competed redirecting user to zip export page, this might have failed");
             }
 
-            const response_message = await HandleDirectDownload(res, fullExpectedZipFileNameStatic, full_dir_parsed_name_zip).catch((err) => LogErrorMessage(err.message,err));
+            const response_message = await ZipDirectoryToPath(fullDirectoryPath, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
             if (!response_message){
                 // failed, still resolve due to handling the bad response on handlesimpleresultmessage
                 await HandleSimpleResultMessage(res, 500, "Failed to Zip File");
@@ -190,7 +192,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
             }
             
             // download directly since below 100mb
-            const write_response = await WriteFileFromStaticPathToResult(res, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
+            const write_response = await HandleDirectDownload(res, fullExpectedZipFileNameStatic, full_dir_parsed_name_zip).catch((err) => LogErrorMessage(err.message,err));
             if (!write_response){
                 // failed, still resolve due to handling the bad response on handlesimpleresultmessage
                 await HandleSimpleResultMessage(res, 500, "Failed to write zip File to result");
