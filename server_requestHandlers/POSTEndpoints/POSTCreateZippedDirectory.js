@@ -9,7 +9,7 @@ import {
     GetValidatedUserRelativePathFromRequestPath
 } from "../../Validator.js";
 import {
-    CheckIfFileHasFileMarker, GetFileReadiness_RemoveOldMarkers
+    CheckIfFileHasFileMarker, GetFileReadiness_RemoveOldMarker
 } from "../../FileInteractions/FileLocker.js"
 import {LogDebugMessage, LogErrorMessage} from "../../logger.js";
 import {HandleRateLimit} from "../../RateLimiter/RateLimiter.js";
@@ -112,7 +112,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
         let ExistingMatch = false;
 
         // check if it already exists if so use that instead of creating new one, this will also delete all deprecated ones if any come up
-        const FileReadyLevel = await GetFileReadiness_RemoveOldMarkers(fullExpectedZipFileNameStatic);
+        const FileReadyLevel = await GetFileReadiness_RemoveOldMarker(fullExpectedZipFileNameStatic);
         if (FileReadyLevel === 1){
             // file ready level is 1  so it means its  ready, meaning that we just use that
             ExistingMatch = true;
@@ -174,6 +174,9 @@ export async function HandlePostCreateZippedDirectory(req, res){
             }
 
             const response_message = await ZipDirectoryToPath(fullDirectoryPath, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
+            console.log(response_message);
+            console.log(response_message);
+            console.log(response_message);
             if (!response_message){
                 // failed, still resolve due to handling the bad response on handlesimpleresultmessage
                 if(!fileTooLarge_performRedirect){

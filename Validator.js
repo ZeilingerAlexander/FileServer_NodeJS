@@ -7,6 +7,7 @@ import * as bcrypt from "bcrypt";
 import {HandleSimpleResultMessage} from "./server.js";
 import {MIME_TYPES} from "./variables/mimeTypes.js";
 import archiver from "archiver";
+import {GetFileReadiness_RemoveOldMarker} from "./FileInteractions/FileLocker.js";
 
 // ...
 
@@ -360,6 +361,7 @@ export async function GetDirectoryStructure(dir_path){
         for (const i in dir) {
             const directoryEntry = dir[i];
             const FullEntryPath = normalizedDirectoryPath + directoryEntry;
+            
             const fileStats = await fsp.lstat(FullEntryPath).catch(
                 (err) => LogErrorMessage(err.message,err)
             );

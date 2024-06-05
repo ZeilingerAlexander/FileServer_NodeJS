@@ -132,7 +132,7 @@ export async function ZipDirectoryToPath(dir_to_zip, out_path) {
         });
 
         // on close remove marker + resolve, or reject if marker removing fails
-        archive.on("close", async function () {
+        archive.on("end", async function () {
             // try to remove the marker up to five times since zipping might have been costly, 
             // if after that it still fails to remove just give up and reject
             let marker_remove_retry_attempts = 5;
