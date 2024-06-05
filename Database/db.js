@@ -91,20 +91,21 @@ async function LockUserAccount(userID){
     });
 }
 
-/*Generates an authentication token for the provided userid and adds it to the database marked as NOT-expired 
-* resolves with the token if successful*/
-export async function GenerateAuthenticationToken(userid){
+/*Generates an authentication token for the provided userid with the provided ip and adds it to the database marked as NOT-expired 
+* resolves with the token if successful
+* rejects if any parms empty*/
+export async function GenerateAuthenticationToken(userid,ip){
     return new Promise(async (resolve,reject) => {
-        if (!userid){ return reject("userid cant be empty");}
+        if (!userid || !ip){ return reject("userid and ip cant be empty");}
         
         // Get the unhashed token for the client to use and store the hashed token inside the db
         const token = await GenerateNewAccesToken();
         const hashedToken = await GetPasswordHash(token);
         
         // insert token into db
-        const query = "INSERT INTO authentication.accesstoken (token, expired, user) " +
-            "VALUES (?,?,?)";
-        const complete_message = await dbcontext.promise().query(query, [hashedToken, false, userid]).catch((err) => LogErrorMessage(err.message, err));
+        const query = "INSERT INTO authentication.accesstoken (token, expired, user,ip) " +
+            "VALUES (?,?,?,?)";
+        const complete_message = await dbcontext.promise().query(query, [hashedToken, false, userid,ip]).catch((err) => LogErrorMessage(err.message, err));
         if (!complete_message){return reject("Failed to insert auth token into db");}
         
         return resolve(token);
@@ -182,14 +183,15 @@ export async function AddLogEntry(message, ip, userid_nullable, accessToken_null
 }
 
 /*Resolves true if authorization for first non-expired authentication token of provided user id matches provied auth token (not-hashed)
-* rejects if any parms empty*/
-export async function ValidateAuthToken(userid, token){
+also checks the provided ip address against the one stored inside the ip column if not null, if null its ignored in the check
+* rejects if any userid or token empty*/
+export async function ValidateAuthToken(userid, token, ip){
     return new Promise (async (resolve,reject) => {
         if (!userid || !token){
             return reject("userid and token cant be empty");
         }
         
-        const query = "SELECT token FROM authentication.accesstoken " +
+        const query = "SELECT token,ip FROM authentication.accesstoken " +
             "INNER JOIN authentication.user ON user=user.id " +
             "WHERE user = ? AND expired = ? AND locked = ?"
         const db_auth_token_row = await dbcontext.promise().query(query, [userid,false,false]).catch(
@@ -197,8 +199,15 @@ export async function ValidateAuthToken(userid, token){
         const data = db_auth_token_row[0];
         
         if (data.length === 0 || !data[0].token){
+            // db error, ip is not important since it wont throw an error on null
             return resolve(false);
         }
+        
+        // Check if provided ip is not null, if so validate against db. on failure resolve with false
+        if(ip != null && data[0].ip !== ip){
+            return resolve(false);
+        }
+        
         // Check if cached data includes the token
         if (CachedAuthTokens.has(token)){
             // Check if cached value matches the one of db

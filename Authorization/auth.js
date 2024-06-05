@@ -30,7 +30,7 @@ export async function HandleAuthorizationOnRequest(req, res){
         const cookies = await GetParsedCookies(req.headers.cookie);
         if (!cookies || !cookies.Authorization || !cookies.userID){return reject("failed to get parts of auth cookie");}
         
-        if (await ValidateAuthToken(cookies.userID, cookies.Authorization)){
+        if (await ValidateAuthToken(cookies.userID, cookies.Authorization, req.socket.remoteAddress)){
             return resolve({
                 accessLevel : await GetAccessLevelFromUserID(cookies.userID),
                 userID : cookies.userID
@@ -70,7 +70,7 @@ export async function HandleAuthorizationLoginOnPost(req,res){
         
         // login is valid, expire old ones and generate a new one
         await ExpireAllAuthenticationTokensForUser(userID);
-        const authToken = await GenerateAuthenticationToken(userID).catch((err) => LogErrorMessage(err.message,err));
+        const authToken = await GenerateAuthenticationToken(userID, req.socket.remoteAddress).catch((err) => LogErrorMessage(err.message,err));
         if (!authToken){
             await HandleSimpleResultMessage(res, 418, "Database Error");
             return reject("Failed to generate auth token");
