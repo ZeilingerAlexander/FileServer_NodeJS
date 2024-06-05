@@ -68,10 +68,18 @@ export async function HandleGetZippedFileStructure(req,res){
                 creationTime : dirStructureEntry.creationTime,
                 isReady : file_ready
             });
-            
         }
-        
-        
-        
+
+
+        // write correct json head
+        res.writeHead(200, {"Content-Type": MIME_TYPES.json});
+
+        // Write content as json
+        const jsonContent = JSON.stringify(ZipDirectoryStructure);
+        res.write(jsonContent);
+
+        // end early since its all sync
+        res.end();
+        return resolve("Successfully wrote zip directory structure to res");
     });
 }
