@@ -80,7 +80,8 @@ export async function HandleUnauthorized(req,res){
     });
 }
 
-/*Creates a folder with the provided path*/
+/*Creates a folder with the provided path
+* never rejects*/
 export async function CreateDirectory(dir_path){
     await fsp.mkdir(dir_path).catch((err) => LogErrorMessage(err.message,err));
 }
@@ -125,6 +126,7 @@ export async function RemoveFile_WithErrors(file_path){
 
         if (DoesPathExist && isPathFile){
             const response_msg = await fsp.unlink(file_path).catch((err) => LogErrorMessage(err.message,err));
+            // todo : fsp.unlink doesnt resolve with anything even on success, fix it to not reject on non-failure
             if (!response_msg){
                 return reject("Failed to unlink file");
             }
