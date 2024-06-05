@@ -77,6 +77,18 @@ export async function CheckIfFileHasInMemoryMarker(file_path){
     });
 }
 
+/*Checks if the file at file-path location has a memory or file marker, returns true if so
+* also checks fi the file is a marker and returns true if so
+* never rejcts only resolves true/false*/
+export async function CheckIfFileHasAnyMarker_OrFileIsMarker(file_path){
+    return new Promise (async (resolve) => {
+        if (await CheckIfFileHasFileMarker(file_path) || await CheckIfFileHasInMemoryMarker(file_path) || file_path.endsWith(process.env.TEMPFILEMARKEREXTENTION)){
+            return resolve(true);
+        }
+        return resolve(false);
+    });
+}
+
 /*Returns how ready the file is to be used, 1 : fully ready, 2 : still being written, 3 : doesnt exist
 * never rejects, on read errors just returns 3 as the default, 
 * also removes leftovers from badly written files by removing file markers if in memory exists but not visa versa*/

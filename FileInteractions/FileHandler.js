@@ -6,7 +6,7 @@ import fs, {promises as fsp} from "fs";
 import {LogDebugMessage, LogErrorMessage} from "../logger.js";
 import {HandleGetFile} from "../server_requestHandlers/HandleGetFile.js";
 import archiver from "archiver";
-import {CreateTempFileMarker, RemoveTempFileMarker} from "./FileLocker.js";
+import {CheckIfFileHasAnyMarker_OrFileIsMarker, CreateTempFileMarker, RemoveTempFileMarker} from "./FileLocker.js";
 
 /*Does exactly what the name says pipes static path file stream to result, rejects on failure
 * THIS DOES NOT WRITE THE RESULT HEAD, ALL THIS DOES IS PIPE THE FILE STREAM DO NOT EXPECT ANYTHING ELSE*/
@@ -14,7 +14,11 @@ export async function WriteFileFromStaticPathToResult(res, static_path){
     return new Promise(async (resolve,reject) => {
         // pipe file stream to result, then return
         try{
-            fs.createReadStream(static_path).pipe(res);
+            const readStream = await GetFileReadstream_safely(static_path).catch((err) => LogErrorMessage(err.message,err));
+            if (!readStream){
+                return reject("Failed to get file read stream")
+            }
+            readStream.pipe(res);
             return resolve("Piping File Stream was successful");
         } catch (ex) {
             await LogErrorMessage(ex.message, ex);
@@ -24,10 +28,21 @@ export async function WriteFileFromStaticPathToResult(res, static_path){
 }
 
 /*Safely gets the file read stream by first ensuring that the file is ready to be read
-* Returns a fs.createReadStream object for provided static file path. rejects on failure*/
+* Returns a fs.createReadStream object for provided static file path. rejects on failure or if file is not ready*/
 export async function GetFileReadstream_safely(static_path){
     return new Promise (async (resolve,reject) => {
+        if (await CheckIfFileHasAnyMarker_OrFileIsMarker(static_path)){
+            return reject("file is not ready to be read since it has a file or memory marker");
+        }
         
+        // file should be ready to be read
+        try{
+            return resolve(fs.createReadStream(static_path));
+        }
+        catch (ex){
+            await LogErrorMessage(ex.message,ex);
+            return reject("Failed to create read stream");
+        }
     });
 }
 

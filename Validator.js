@@ -7,7 +7,7 @@ import * as bcrypt from "bcrypt";
 import {HandleSimpleResultMessage} from "./server.js";
 import {MIME_TYPES} from "./variables/mimeTypes.js";
 import archiver from "archiver";
-import {GetFileReadiness_RemoveOldMarker} from "./FileInteractions/FileLocker.js";
+import {CheckIfFileHasAnyMarker_OrFileIsMarker, GetFileReadiness_RemoveOldMarker} from "./FileInteractions/FileLocker.js";
 
 // ...
 
@@ -342,7 +342,8 @@ export async function GetFileStats(content_path){
 
 /*Gets the Directory Structure, rejects on failure
 * Resolves with a structure of files {name (the name of the file), Directory (if the file is a directory or not), 
-* size (size in bytes) -> only for files, lastModified, creationTime}*/
+* size (size in bytes) -> only for files, lastModified, creationTime}
+* skips all files that arent ready to be read (filelocker)*/
 export async function GetDirectoryStructure(dir_path){
     return new Promise (async (resolve,reject) => {
         const dir = await fsp.readdir(dir_path).catch(
@@ -361,6 +362,11 @@ export async function GetDirectoryStructure(dir_path){
         for (const i in dir) {
             const directoryEntry = dir[i];
             const FullEntryPath = normalizedDirectoryPath + directoryEntry;
+
+            // check if the file has a marker indicating its not ready to be read
+            if (await CheckIfFileHasAnyMarker_OrFileIsMarker(FullEntryPath)){
+                continue;
+            }
             
             const fileStats = await fsp.lstat(FullEntryPath).catch(
                 (err) => LogErrorMessage(err.message,err)
