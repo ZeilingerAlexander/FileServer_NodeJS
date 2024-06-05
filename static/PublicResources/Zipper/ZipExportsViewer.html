@@ -10,5 +10,43 @@
 
 <link rel="stylesheet" media="screen, projection" type="text/css" href="/GET/GetPublicResource?val=GlobalPageExtendors/PageExtendorStyles.css">
 <iframe src="/GET/GetPublicResource?val=GlobalPageExtendors/footer.html" class="footerIframe" scrolling="none"></iframe>
+
+
+<script>
+    console.log("loaded");
+    // const MainContainerRef = document.getElementById("MainContainer");
+    
+    document.addEventListener("DOMContentLoaded", async () => {
+        const origin = window.location.origin;
+        const fullGetPath = origin + "/GET/GetZippedFileStructure";
+
+        const response = await fetch(fullGetPath);
+        console.log(response);
+
+        if (response.status === 200){
+            let body = await response.json();
+            console.log(body);
+        }
+        else {
+            document.body.textContent = "Bad Server Response, aborting...";
+        }
+    });
+
+
+    /*Logout function*/
+    async function PostLogoutUser(){
+        const response = await fetch( window.location.origin + "/POST" + "/PostLogoutUser", {
+            method : "POST",
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        });
+
+        console.log(response);
+
+        // always reload and ignore response to maybe fix server side errors on reload if any accur
+        window.location.reload();
+    }
+</script>
 </body>
 </html>
