@@ -45,7 +45,7 @@ export async function HandleGetDirectoryStructure(req, res){
         }
         
         // read directory
-        const DirectoryStructure = await GetDirectoryStructure(fullDirLocation);
+        const DirectoryStructure = await GetDirectoryStructure(fullDirLocation, true);
         
         // write correct json head
         res.writeHead(200, {"Content-Type": MIME_TYPES.json});

@@ -343,8 +343,8 @@ export async function GetFileStats(content_path){
 /*Gets the Directory Structure, rejects on failure
 * Resolves with a structure of files {name (the name of the file), Directory (if the file is a directory or not), 
 * size (size in bytes) -> only for files, lastModified, creationTime}
-* skips all files that arent ready to be read (filelocker)*/
-export async function GetDirectoryStructure(dir_path){
+* skips all files that arent ready to be read (filelocker) if skipLockedFiles = true*/
+export async function GetDirectoryStructure(dir_path, skipLockedFiles = false){
     return new Promise (async (resolve,reject) => {
         const dir = await fsp.readdir(dir_path).catch(
             (err) => LogErrorMessage(err.message, err)
@@ -363,8 +363,8 @@ export async function GetDirectoryStructure(dir_path){
             const directoryEntry = dir[i];
             const FullEntryPath = normalizedDirectoryPath + directoryEntry;
 
-            // check if the file has a marker indicating its not ready to be read
-            if (await CheckIfFileHasAnyMarker_OrFileIsMarker(FullEntryPath)){
+            // check if the file has a marker indicating its not ready to be read if skipLockedFiles = true
+            if (skipLockedFiles && await CheckIfFileHasAnyMarker_OrFileIsMarker(FullEntryPath)){
                 continue;
             }
             
