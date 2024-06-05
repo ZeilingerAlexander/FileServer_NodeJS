@@ -4,9 +4,9 @@ import {
     CheckIFPathExists, GetDirectorySize,
     GetDirectoryStructure,
     GetFileStats,
-    GetFullPathFromRelativePath, GetImportantDirectoryInfo_Size_LastModifierz,
+    GetFullPathFromRelativePath, GetImportantDirectoryInfo_Size_LastModifierz, GetNormalizedZipFilename,
     GetSingleURLParameter_ReturnBadRequestIfNotFound,
-    GetValidatedUserRelativePathFromRequestPath
+    GetValidatedUserRelativePathFromRequestPath, GetZipPathUserDirectory_ForUser
 } from "../../Validator.js";
 import {
     CheckIfFileHasFileMarker, GetFileReadiness_RemoveOldMarker
@@ -83,22 +83,24 @@ export async function HandlePostCreateZippedDirectory(req, res){
             return resolve("rate limited");
         }
 
-        // check if a zip file with the name already exists under the zip user directory, replace escape characters with _
-        // parse the full directory name for later validating against it and also to create a new entry based on it (this is simply the name normalized)
-        // also create a zipped version of it
-        let full_dir_parsed_name = dirLocation.replaceAll("/", "_");
-        full_dir_parsed_name = full_dir_parsed_name.replaceAll("\\", "_");
-        full_dir_parsed_name = full_dir_parsed_name.replaceAll("-", "_");
-        let full_dir_parsed_name_zip = dirLocation.replaceAll("/","").replaceAll("\\","") + ".zip";
+        //#region path definitions
+        // set important names for normalization
+        // full_dir_parsed_name = directory location without / \\ and - replaced with _
+        // prepend it with - end it with - in order to later extract the "real" name of the file
+        // full_dir_parsed_name_zip is only used for direct downloads
+        
+        let full_dir_parsed_name = GetNormalizedZipFilename(dirLocation);
+        let full_dir_parsed_name_zip = full_dir_parsed_name + ".zip";
 
         // The full zip directories, first the base path just being the one in env file then the user specific one, these are for validating before getting file stats
         const full_zip_BaseDirectoryPath = await GetFullPathFromRelativePath(process.env.USERZIPDIRECTORY_RELATIVEPATH);
-        const full_zip_userDirecotry_path =  path.join( full_zip_BaseDirectoryPath, req.userID);
+        const full_zip_userDirecotry_path =  await GetZipPathUserDirectory_ForUser(req.userID);
 
         // The full expected zip file name, this will be checked if it already exists, if so it will use it instead of creating a new one
         const fullExpectedZipFileNameRelative = full_dir_parsed_name + directoryLastModified + ".zip";
         const fullExpectedZipFileNameStatic = path.join(full_zip_userDirecotry_path, fullExpectedZipFileNameRelative);
-
+        
+        //#endregion
         // it is on purpose to run them sync in order to achieve in time file system manipulation
         if (!await CheckIFPathExists(full_zip_BaseDirectoryPath)){
             CreateDirectory(full_zip_BaseDirectoryPath);

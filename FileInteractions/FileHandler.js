@@ -127,6 +127,10 @@ export async function RemoveFile_WithErrors(file_path){
         if (DoesPathExist && isPathFile){
             const response_msg = await fsp.unlink(file_path).catch((err) => LogErrorMessage(err.message,err));
             // todo : fsp.unlink doesnt resolve with anything even on success, fix it to not reject on non-failure
+            console.log(response_msg);
+            console.log(response_msg);
+            console.log(response_msg);
+            console.log(response_msg);
             if (!response_msg){
                 return reject("Failed to unlink file");
             }
@@ -234,5 +238,12 @@ export async function ZipDirectoryToPath(dir_to_zip, out_path) {
 
 
         await archive.finalize();
+    });
+}
+
+/**/
+export async function GetZipFileNameForDirectory(){
+    return new Promise (async (resolve,reject) => {
+        
     });
 }

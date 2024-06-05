@@ -1,4 +1,4 @@
-import {CheckIFPathExists} from "../Validator.js";
+import {CheckIFPathExists, GetFilenameWithMarker} from "../Validator.js";
 import * as fs from "fs";
 import {LogDebugMessage, LogErrorMessage} from "../logger.js";
 import {RemoveFile_WithErrors} from "./FileHandler.js";
@@ -13,7 +13,7 @@ also adds the marker to temp paths, only adds it if its not already added (this 
 * rejects on error*/
 export async function CreateTempFileMarker(content_path){
     return new Promise(async (resolve,reject) => {
-        const full_path = content_path+process.env.TEMPFILEMARKEREXTENTION;
+        const full_path = GetFilenameWithMarker(content_path);
         fs.writeFile(full_path, "", err => {
             if (err){
                 LogErrorMessage(err.message, err);
@@ -33,7 +33,7 @@ export async function CreateTempFileMarker(content_path){
 /*Removes the temp file marker for the file residing in the provided path, removing the marker indicates that the file was written without errors*/
 export async function RemoveTempFileMarker(content_path){
     return new Promise (async (resolve,reject) => {
-        const fullFilePath = content_path + process.env.TEMPFILEMARKEREXTENTION;
+        const fullFilePath = GetFilenameWithMarker(content_path);
 
         // remove from in-memory storage
         if (LockedFiles.has(content_path)){
@@ -57,7 +57,7 @@ export async function RemoveTempFileMarker(content_path){
 /*Checks if the file at file_path location has an associated file-not-ready marker, never rejects only resolves (true/false) -> true if marker*/
 export async function CheckIfFileHasFileMarker(file_path){
     return new Promise (async (resolve) => {
-        const fullfilepath = file_path+process.env.TEMPFILEMARKEREXTENTION;
+        const fullfilepath = GetFilenameWithMarker(file_path);
         const fileExist = await CheckIFPathExists(fullfilepath).catch((err) => LogErrorMessage(err.message,err));
         if (fileExist){
             return resolve(true);
@@ -129,7 +129,7 @@ async function RemoveBadFileWithMarkers(static_file_path){
         // file has file-marker but no in-memory marker meaning that its a leftover from a bad previos attempt, try removing it
         const file_marker_remove_response = await RemoveFile_WithErrors(static_file_path)
             .catch((err) => LogErrorMessage(err.message,err));
-        const file_zip_remove_response = await RemoveFile_WithErrors(static_file_path+process.env.TEMPFILEMARKEREXTENTION)
+        const file_zip_remove_response = await RemoveFile_WithErrors(GetFilenameWithMarker(static_file_path))
             .catch((err) => LogErrorMessage(err.message,err));
         if (!file_zip_remove_response || !file_marker_remove_response){
             // failed to remove one of both

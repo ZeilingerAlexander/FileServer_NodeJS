@@ -475,3 +475,28 @@ export async function GetAllFilePathsInDirectory(dirPath, arr){
         return resolve(arr);
     });
 }
+
+/*Gets the zip exports directory for the provided user id*/
+export async function GetZipPathUserDirectory_ForUser(userID) {
+    const full_zip_BaseDirectoryPath = await GetFullPathFromRelativePath(process.env.USERZIPDIRECTORY_RELATIVEPATH);
+    return path.join( full_zip_BaseDirectoryPath, userID);
+}
+
+
+/*Gets the normalized expected zip filename for the zipper functions for the provided filename
+* removes any / or \\
+* replaces - with _
+* prepends a - and ends with a -*/
+export function GetNormalizedZipFilename(filename){
+    let fullParsedName = filename.replaceAll("/", "");
+    fullParsedName = fullParsedName.replaceAll("\\", "");
+    fullParsedName = fullParsedName.replaceAll("-", "_");
+    fullParsedName = "-" + fullParsedName + "-";
+    
+    return fullParsedName;
+}
+
+/*Gets the filename with a "not ready" marker added to it*/
+export function GetFilenameWithMarker(filename){
+    return filename+process.env.TEMPFILEMARKEREXTENTION;
+}
