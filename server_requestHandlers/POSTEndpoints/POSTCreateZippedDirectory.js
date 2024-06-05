@@ -11,7 +11,7 @@ import {
 import {
     CheckIfFileHasFileMarker, GetFileReadiness_RemoveOldMarkers
 } from "../../FileInteractions/FileLocker.js"
-import {LogErrorMessage} from "../../logger.js";
+import {LogDebugMessage, LogErrorMessage} from "../../logger.js";
 import {HandleRateLimit} from "../../RateLimiter/RateLimiter.js";
 import {HandleSimpleResultMessage, HandleTemporaryRedirectionResult} from "../../server.js";
 import {
@@ -162,6 +162,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
         else{
             // folder should be zipped
             // determine if the folder exceeds the max allowed payload (this is not perfect since zipped files are obviosly tinier to *2 it)
+            // if fileTooLarge_performRedirect is set also only write the first redirect response and no other failures since those would be sent after the client already recieved headers which wont work
             const folder_size = await GetDirectorySize(fullDirectoryPath);
             const fileTooLarge_performRedirect = (folder_size / 2 >= process.env.ZIPPER_MAXALLOWEDDIRECTODOWNLOADSIZE)
             
@@ -169,20 +170,24 @@ export async function HandlePostCreateZippedDirectory(req, res){
                 // handle redirect to "resolve" the request endpoint in frontend and mark the file as being-written
                 // since no more data from frontend is needed its fine to return a http response here, but dont resolve since we still need to actually write the zip file
                 await HandleFileTooLargeRedirectResponse(res);
-                return resolve("competed redirecting user to zip export page, this might have failed");
+                LogDebugMessage("competed redirecting user to zip export page, this might have failed");
             }
 
             const response_message = await ZipDirectoryToPath(fullDirectoryPath, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
             if (!response_message){
                 // failed, still resolve due to handling the bad response on handlesimpleresultmessage
-                await HandleSimpleResultMessage(res, 500, "Failed to Zip File");
+                if(!fileTooLarge_performRedirect){
+                    await HandleSimpleResultMessage(res, 500, "Failed to Zip File");
+                }
                 return resolve("Failed to get zipped file");
             }
             
             const filestats = await GetFileStats(fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message, err));
             if (!filestats || !filestats.size){
                 // failed, still resolve due to handling the bad response on handlesimpleresultmessage
-                await HandleSimpleResultMessage(res,  500, "Failed to get Stats from written zip file");
+                if (!fileTooLarge_performRedirect){
+                    await HandleSimpleResultMessage(res,  500, "Failed to get Stats from written zip file");
+                }
                 return resolve("Failed to get filestats for should-be existing file");
             }
             
@@ -191,7 +196,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
                 return resolve("Successfully zipped file");
             }
             
-            // download directly since below 100mb
+            // download directly since below 100mb, we dont have to check for fileTooLarge_performRedirect since we checked beforehand with the if block
             const write_response = await HandleDirectDownload(res, fullExpectedZipFileNameStatic, full_dir_parsed_name_zip).catch((err) => LogErrorMessage(err.message,err));
             if (!write_response){
                 // failed, still resolve due to handling the bad response on handlesimpleresultmessage
