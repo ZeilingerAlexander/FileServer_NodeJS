@@ -76,7 +76,7 @@ export async function HandleAuthorizationLoginOnPost(req,res){
             return reject("Failed to generate auth token");
         }
         
-        res.writeHead(200, {"Set-Cookie" : [`Authorization=${authToken}; SameSite=Lax;Path=/`, `userID=${userID};SameSite=Lax;Path=/`]});
+        res.writeHead(200, {"Set-Cookie" : [`Authorization=${authToken}; SameSite=Lax;Path=/;HttpOnly`, `userID=${userID};SameSite=Lax;Path=/;HttpOnly`]});
         res.end();
         resolve("Successfully completed handling auth");
     });
