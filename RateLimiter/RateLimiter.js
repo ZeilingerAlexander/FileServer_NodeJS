@@ -112,7 +112,8 @@ async function ApplyExtremeRequestRateLimit(req){
 
 /*Handles rate limiting on the provided req and res with the level of strength (0,1,2,3) (weak,medium,strong,extreme)
 * returns a simple rate limit error to result and ends result if rate limiting applies
-* resolves with true if rate limit got reached and false if not*/
+* resolves with true if rate limit got reached and false if not
+* never rejects*/
 export async function HandleRateLimit(req, res, strength){
     return new Promise (async (resolve) => {
         let result_message = undefined;

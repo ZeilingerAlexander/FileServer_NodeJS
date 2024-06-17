@@ -9,11 +9,15 @@ import * as path from "path";
 import {CheckIfFileHasAnyMarker_OrFileIsMarker} from "../../FileInteractions/FileLocker.js";
 import {HandleSimpleResultMessage} from "../../server.js";
 import {HandleNotFound, WriteFileFromStaticPathToResult} from "../../FileInteractions/FileHandler.js";
+import {HandleRateLimit} from "../../RateLimiter/RateLimiter.js";
 
 export async function HandleRetrieveZippedFile (req,res){
     return new Promise (async (resolve,reject) => {
         if(req.accessLevel < 2){
             return reject("Too low access level to get zipped file");
+        }
+        if (await HandleRateLimit(req,res,3)){
+            return resolve("rate limited");
         }
 
         let filename = await GetSingleURLParameter_ReturnBadRequestIfNotFound(req, res, "val").catch(
