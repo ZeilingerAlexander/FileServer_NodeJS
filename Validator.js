@@ -488,8 +488,16 @@ export async function GetZipPathUserDirectory_ForUser(userID) {
 * replaces - with _
 * prepends a - and ends with a -*/
 export function GetNormalizedZipFilename(filename){
-    let fullParsedName = filename.replaceAll("/", "");
-    fullParsedName = fullParsedName.replaceAll("\\", "");
+    let fullParsedName = filename;
+    // remove the initial / or \\ if existing
+    if (fullParsedName.startsWith("/")){
+        fullParsedName =  fullParsedName.substring(1);
+    }
+    else if (fullParsedName.startsWith("\\")){
+        fullParsedName = fullParsedName.substring(2);
+    }
+     fullParsedName = fullParsedName.replaceAll("/", "-");
+    fullParsedName = fullParsedName.replaceAll("\\", "-");
     fullParsedName = fullParsedName.replaceAll("-", "_");
     fullParsedName = "-" + fullParsedName + "-";
     
