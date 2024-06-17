@@ -524,6 +524,15 @@ export function GetFilenameWithMarker(filename){
 /*Reverses the GetNormalizedZipFilename Process as much as possible and gets the previous filename
 * if the file ends with an extension that extension is preserved*/
 export function GetFilenameFromZipParsedFilename(filename){
+    // parse to remove any / or \\ beforehand
+    if (filename.includes("/")){
+        filename = filename.substring(filename.lastIndexOf("/")+1);
+    }
+    if (filename.includes("\\")){
+        filename = filename.substring(filename.lastIndexOf("\\")+1)
+    }
+    
+    
     const extension = filename.includes(".") ? filename.substring(filename.lastIndexOf("."),filename.length) : "";
     return filename.substring(filename.indexOf("-")+1,filename.indexOf("-",1)) + extension;
 }
