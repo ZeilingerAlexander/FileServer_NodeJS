@@ -44,8 +44,7 @@ export async function HandleRetrieveZippedFile (req,res){
         const zipFileName = GetFilenameFromZipParsedFilename(fullZipFilePath);
         
         // send file with modified file name
-        res.writeHead(202, " application/x-zip",
-            `Content-Disposition: attachment; filename="${zipFileName}"`);
+        res.writeHead(202, {"Content-Type" : "application/x-zip","Content-Disposition" : `attachment; filename="${zipFileName}"`});
         const responsemsg = await WriteFileFromStaticPathToResult(res, fullZipFilePath).catch((err) => LogErrorMessage(err.message,err));
         if (!responsemsg){
             return reject("Failed to write zip file from static path to res");
