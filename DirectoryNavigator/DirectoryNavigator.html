@@ -177,7 +177,6 @@
     /*The event handler for download click*/
     async function on_downloadClicked(){
         return new Promise (async (resolve,reject) => {
-            // TODO : convert this with backend, read other todos
             const download_path = this.getAttribute("DownloadPath");
             let download_name = this.getAttribute("DownloadName");
             const isDirectory = !!this.getAttribute("download_isDirectory");
@@ -201,17 +200,6 @@
                 fullDownloadPath = GetFullPathFromPath(download_path);
             }
             console.log(fullDownloadPath);
-            // TODO : completly overhal the system for zip downloads
-            // folder download -> post zip endpoint + redirecto to zip exports page, remove the return file thing entirely
-            // add get endpoint for getting zipped files, in that endpoint make sure to validate if the file is ready or not
-            // normal file download -> redirect to page of resource
-            // TODO : add zip exports page 
-            // contains list of files under zip exports and if they are ready or not
-            // links them to the above mentioned get zip exports endpoint
-            // add an update script that silently updates the entries every 30 seconds or something
-            // TODO : (extra) look into the nameing of some files and why they cant be downloaded
-            
-            
             window.open(fullDownloadPath);
             
             /*const response_msg = await StartDownload(fullDownloadPath, this, download_name).catch((err) => console.error(err));
@@ -220,63 +208,6 @@
             }*/
             return resolve("Download complete");
             
-        });
-    }
-    
-    
-    /*downloads the provided path with the provided button reference for updating the ui when complete*/
-    async function StartDownload(link, buttonRef, filename){
-        return new Promise (async (resolve,reject) => {
-            // disable button until download complete
-            console.log(buttonRef);
-            console.log(buttonRef);
-            console.log(buttonRef);
-            if (buttonRef){
-                buttonRef.setAttribute("disabled", true);
-            }
-            
-            // start download via fetch when complete save to file via filename
-            const data = await fetch(link, {
-                method : "GET"
-            }).catch((err) => console.error(err));
-            
-            if (!data){
-                return reject("Failed to fetch");
-            }
-            if (data.status === 303){
-                // redirect
-                // TODO : remove the hard coded redirect here when we finally implement the backend solution for this
-                return resolve("redirecting");
-            }
-            if (!data.ok){
-                // permanently disable link
-                buttonRef.setAttribute("permanently_disabled", true);
-                return reject("Request Failed");
-            }
-
-            
-            // blob the data
-            const data_blob = await data.blob().catch((err) => console.error(err));
-            if (!data_blob){
-                return reject("failed to craete blob");
-            }
-            
-            // download the blob
-            let url = window.URL.createObjectURL(data_blob);
-            let temp_download = document.createElement("a");
-            temp_download.href = url;
-            temp_download.download = filename;
-            document.body.appendChild(temp_download);
-            temp_download.click();
-            temp_download.remove();
-            
-            
-            // show that the download was successful but dont enable button again to prevent accidential useless requests
-            if (buttonRef){
-                buttonRef.setAttribute("successfully_used", true)
-            }
-            
-            return resolve("completed download");
         });
     }
 </script>

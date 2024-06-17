@@ -129,9 +129,6 @@ export async function HandlePostCreateZippedDirectory(req, res){
             ExistingMatch = false;
         }
         
-        // TODO : fully rewrite this garbage since it doesnt work. just go through the workings again and only write file if file readyness = 3
-        // also for some reason we never zip it. so fix that aswell
-        
         // if existing match use that file instead of creating new one
         if (ExistingMatch){
             // check the filestats for size then decide if to download directly or to shift to the zipped directories
