@@ -120,6 +120,11 @@ td:first-child + td + td + td {
     border: transparent 0px;
     border-radius: 4px;
 }
+a.disabled {
+    pointer-events: none;
+    cursor: default;
+    background-color: lightgray;
+}
 .downloadButton:disabled,button[disabled]{
     background-color: lightgray;
 }

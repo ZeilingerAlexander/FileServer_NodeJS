@@ -2,16 +2,46 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" media="screen, projection" type="text/css" href="/GET/GetPublicResource?val=DirectoryNavigatorResources/dirListing.css">
+    <link rel="stylesheet" media="screen, projection" type="text/css" href="/GET/GetPublicResource?val=DirectoryNavigatorResources/DirectoryNavStyles.css">
+    <link rel="stylesheet" media="screen, projection" type="text/css" href="/GET/GetPublicResource?val=GlobalPageExtendors/PageExtendorStyles.css">
     <title>Title</title>
 </head>
 <body>
+<nav>
+    <div class="buttons">
+        <!--Search-->
+        <input type="search" id="site-search" class="searchbar" placeholder="Search" oninput="onSearchBarKeyRecieved()">
 
-<h1>hey</h1>
+        <a class="button hidden_for_mobile" type="button" href="/GET/GetUploadPage" style="background-color: white; color: black">Upload</a>
+        <a class="button" type="button" onclick="PostLogoutUser()" style="background-color: lightskyblue; color: black">Logout</a>
+    </div>
+</nav>
+<div>
+    <table>
+        <thead>
+        <tr>
+            <th class="sortable" data-sort="name" style="max-width: 550px; overflow: hidden">
+                <label>Name</label>
+            </th>
+            <th class="sortable" data-sort="size">
+                <label>Size</label>
+            </th>
+            <th class="sortable hidden_for_mobile" data-sort="modified">
+                <label>Last Modified</label>
+            </th>
+            <th colspan="1">
+                <label> </label>
+            </th>
+        </tr>
+        </thead>
+        <tbody id="MainContainer">
 
-<link rel="stylesheet" media="screen, projection" type="text/css" href="/GET/GetPublicResource?val=GlobalPageExtendors/PageExtendorStyles.css">
+        </tbody>
+    </table>
+</div>
 <iframe src="/GET/GetPublicResource?val=GlobalPageExtendors/footer.html" class="footerIframe" scrolling="none"></iframe>
-
-
+<!--Main Script for loading-->
 <script>
     console.log("loaded");
     // const MainContainerRef = document.getElementById("MainContainer");
@@ -26,6 +56,10 @@
         if (response.status === 200){
             let body = await response.json();
             console.log(body);
+            for (const i in body) {
+                const link = body[i];
+                GenerateLink(link);
+            }
         }
         else {
             document.body.textContent = "Bad Server Response, aborting...";
@@ -46,6 +80,168 @@
 
         // always reload and ignore response to maybe fix server side errors on reload if any accur
         window.location.reload();
+    }
+</script>
+
+<!--link generator script-->
+<script>
+    // The Size Dictionary used for displaying human readable sizes
+    const size_prefixes = {
+        0 : "B",
+        1 : "KB",
+        2 : "MB",
+        3 : "GB",
+        4 : "TB",
+        5 : "PB",
+        6 : "EB"
+    }
+
+
+    /*Generates a new table row element*/
+    function GenerateLink(link) {
+        const tbody = document.getElementById("MainContainer");
+        const row = document.createElement("tr");
+
+        const fullPath = `/GET/RetrieveZippedFile?val=${link.fullFileName}`
+        
+        //#region Name Cell
+        const nameCell = document.createElement("td");
+        const nameLink = document.createElement("a");
+        nameLink.textContent = link.ParsedFileName;
+        nameLink.href = fullPath;
+        nameLink.target = "_blank";
+        nameCell.setAttribute("data-name", link.ParsedFileName);
+        
+        // disable if not ready
+        if (!link.isReady){
+            nameLink.disabled = true;
+            nameLink.setAttribute("disabled","true");
+        }
+        
+        nameCell.appendChild(nameLink);
+        row.appendChild(nameCell);
+        //#endregion
+        //#region Size Cell
+        const sizeCell = document.createElement("td");
+        // calculate human readable size with size index pointing to the prefix and stop if too large (greater then exabyte)
+        let humanSize = link.size;
+        let sizeIndex = 0;
+        while (humanSize > 1000 && sizeIndex <= 6){
+            sizeIndex++;
+            humanSize = Math.round(humanSize / 1000);
+            console.log("hit", humanSize, " - ",sizeIndex);
+        }
+        console.log("passed", humanSize, " - ",sizeIndex);
+        sizeCell.textContent = humanSize + " " + size_prefixes[`${sizeIndex}`];
+        sizeCell.setAttribute("data-size", link.size);
+        row.appendChild(sizeCell);
+        //#endregion
+        //#region Date Cell
+        const modifiedCell = document.createElement("td");
+        let date = new Date(link.lastModified);
+        modifiedCell.textContent = `${date.getDay()}.${date.getMonth()}.${date.getFullYear()} | ${date.getHours()}h ${date.getMinutes()}m`;
+        modifiedCell.setAttribute("data-modified", link.lastModified);
+        modifiedCell.className = "hidden_for_mobile";
+        row.appendChild(modifiedCell);
+        //#endregion
+        //#region Download Cell
+        const donwloadCell = document.createElement("td");
+        const downloadLink = document.createElement("a");
+        downloadLink.textContent = "⇲";
+        downloadLink.href = fullPath;
+        downloadLink.target = "_blank";
+        
+        // disable if not ready
+        if (!link.isReady){
+            downloadLink.disabled = true;
+            downloadLink.setAttribute("disabled","true");
+        }
+
+        downloadLink.className = "downloadButton";
+        downloadLink.title = "Download";
+        donwloadCell.appendChild(downloadLink);
+        row.appendChild(donwloadCell);
+
+        //#endregion
+
+        tbody.appendChild(row);
+    }
+
+</script>
+
+<!--Sort script-->
+<script>
+    const headers = document.querySelectorAll('.sortable');
+
+    headers.forEach(header => {
+        header.addEventListener('click', () => {
+            const sortBy = header.dataset.sort;
+            const isAsc = header.classList.toggle('asc');
+            sortTable(sortBy, isAsc);
+        });
+    });
+
+    function sortTable(sortBy, isAsc) {
+        const table = document.querySelector('table');
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        const sortFactor = isAsc ? 1 : -1;
+
+        rows.sort((rowA, rowB) => {
+            const valueA = getRowValue(rowA, sortBy);
+            const valueB = getRowValue(rowB, sortBy);
+
+            if (valueA < valueB) return -1 * sortFactor;
+            if (valueA > valueB) return 1 * sortFactor;
+            return 0;
+        });
+
+        rows.forEach(row => {
+            tbody.appendChild(row);
+        });
+    }
+
+    function getRowValue(row, sortBy) {
+        const cell = row.querySelector(`[data-${sortBy}]`);
+        return cell ? cell.dataset[sortBy] : '';
+    }
+</script>
+
+<!--Search Script-->
+<script>
+    const searchBarRef = document.getElementById("site-search");
+    async function onSearchBarKeyRecieved(){
+        await search(searchBarRef.value);
+    }
+
+    /*applies the serach with specified query*/
+    async function search(query){
+        return new Promise(async (resolve) => {
+            const table = document.querySelector('table');
+            const tbody = table.querySelector('tbody');
+            let rows = Array.from(tbody.querySelectorAll('tr'));
+
+            rows = rows.filter((row) => {
+                return getRowValue(row, "name").toLowerCase().includes(query.toLowerCase());
+            });
+
+            // hide all elements
+            const allRows = Array.from(tbody.querySelectorAll('tr'));
+            for (let rowkey in allRows) {
+                let row = allRows[rowkey];
+                row.style.visibility = "hidden";
+                row.style.display = "none"
+            }
+
+            // un-hide all filtered elments
+            rows.forEach(row => {
+                row.style.visibility = "visible";
+                row.style.display = "";
+            });
+
+            return resolve("done");
+        });
     }
 </script>
 </body>
