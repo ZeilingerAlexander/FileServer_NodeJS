@@ -2,7 +2,7 @@
 import * as path from "path";
 import {
     CheckIFPathExists, GetDirectorySize,
-    GetDirectoryStructure,
+    GetDirectoryStructure, GetFilenameFromZipParsedFilename,
     GetFileStats,
     GetFullPathFromRelativePath, GetImportantDirectoryInfo_Size_LastModifierz, GetNormalizedZipFilename,
     GetSingleURLParameter_ReturnBadRequestIfNotFound,
@@ -91,6 +91,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
         
         let full_dir_parsed_name = GetNormalizedZipFilename(dirLocation);
         let full_dir_parsed_name_zip = full_dir_parsed_name + ".zip";
+        let DirectDownloadParsedFilename_zip = GetFilenameFromZipParsedFilename(full_dir_parsed_name_zip);
 
         // The full zip directories, first the base path just being the one in env file then the user specific one, these are for validating before getting file stats
         const full_zip_BaseDirectoryPath = await GetFullPathFromRelativePath(process.env.USERZIPDIRECTORY_RELATIVEPATH);
@@ -151,7 +152,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
             if (filestats.size < process.env.ZIPPER_MAXALLOWEDDIRECTODOWNLOADSIZE){
                 // smaller then 100mb, download directly
 
-                const responsemsg = await HandleDirectDownload(res, fullExpectedZipFileNameStatic, full_dir_parsed_name_zip).catch((err) => LogErrorMessage(err.message,err));
+                const responsemsg = await HandleDirectDownload(res, fullExpectedZipFileNameStatic, DirectDownloadParsedFilename_zip).catch((err) => LogErrorMessage(err.message,err));
                 if (!responsemsg){return reject("Failed to write stream to result");}
                 return resolve("Successfully piped existing file to result stream");
             }
@@ -176,9 +177,6 @@ export async function HandlePostCreateZippedDirectory(req, res){
             }
 
             const response_message = await ZipDirectoryToPath(fullDirectoryPath, fullExpectedZipFileNameStatic).catch((err) => LogErrorMessage(err.message,err));
-            console.log(response_message);
-            console.log(response_message);
-            console.log(response_message);
             if (!response_message){
                 // failed, still resolve due to handling the bad response on handlesimpleresultmessage
                 if(!fileTooLarge_performRedirect){
@@ -202,7 +200,7 @@ export async function HandlePostCreateZippedDirectory(req, res){
             }
             
             // download directly since below 100mb, we dont have to check for fileTooLarge_performRedirect since we checked beforehand with the if block
-            const write_response = await HandleDirectDownload(res, fullExpectedZipFileNameStatic, full_dir_parsed_name_zip).catch((err) => LogErrorMessage(err.message,err));
+            const write_response = await HandleDirectDownload(res, fullExpectedZipFileNameStatic, DirectDownloadParsedFilename_zip).catch((err) => LogErrorMessage(err.message,err));
             if (!write_response){
                 // failed, still resolve due to handling the bad response on handlesimpleresultmessage
                 await HandleSimpleResultMessage(res, 500, "Failed to write zip File to result");
