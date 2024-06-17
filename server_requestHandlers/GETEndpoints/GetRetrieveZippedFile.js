@@ -16,7 +16,7 @@ export async function HandleRetrieveZippedFile (req,res){
         if(req.accessLevel < 2){
             return reject("Too low access level to get zipped file");
         }
-        if (await HandleRateLimit(req,res,3)){
+        if (await HandleRateLimit(req,res,2)){
             return resolve("rate limited");
         }
 
