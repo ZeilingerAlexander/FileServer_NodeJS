@@ -107,16 +107,16 @@
         //#region Name Cell
         const nameCell = document.createElement("td");
         const nameLink = document.createElement("a");
-        nameLink.textContent = link.ParsedFileName;
-        nameLink.href = fullPath;
-        nameLink.target = "_blank";
-        nameCell.setAttribute("data-name", link.ParsedFileName);
-        
-        // disable if not ready
-        if (!link.isReady){
-            nameLink.disabled = true;
-            nameLink.setAttribute("disabled","true");
+        if (link.isReady){
+            nameLink.textContent = link.ParsedFileName;
+            nameLink.href = fullPath;
+            nameLink.target = "_blank";
         }
+        else{
+            nameLink.textContent = "not ready | " + link.ParsedFileName;
+        }
+
+        nameCell.setAttribute("data-name", link.ParsedFileName);
         
         nameCell.appendChild(nameLink);
         row.appendChild(nameCell);
@@ -145,23 +145,22 @@
         row.appendChild(modifiedCell);
         //#endregion
         //#region Download Cell
-        const donwloadCell = document.createElement("td");
-        const downloadLink = document.createElement("a");
-        downloadLink.textContent = "⇲";
-        downloadLink.href = fullPath;
-        downloadLink.target = "_blank";
-        
-        // disable if not ready
-        if (!link.isReady){
-            downloadLink.disabled = true;
-            downloadLink.setAttribute("disabled","true");
+        if (link.isReady){
+            const donwloadCell = document.createElement("td");
+            const downloadLink = document.createElement("a");
+            
+            downloadLink.textContent = "⇲";
+            downloadLink.href = fullPath;
+            downloadLink.target = "_blank";
+
+            downloadLink.className = "downloadButton";
+            downloadLink.title = "Download";
+            donwloadCell.appendChild(downloadLink);
+            row.appendChild(donwloadCell);
+
         }
 
-        downloadLink.className = "downloadButton";
-        downloadLink.title = "Download";
-        donwloadCell.appendChild(downloadLink);
-        row.appendChild(donwloadCell);
-
+        
         //#endregion
 
         tbody.appendChild(row);
