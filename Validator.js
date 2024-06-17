@@ -484,9 +484,20 @@ export async function GetZipPathUserDirectory_ForUser(userID) {
 
 
 /*Gets the normalized expected zip filename for the zipper functions for the provided filename
-* removes any / or \\
-* replaces - with _
-* prepends a - and ends with a -*/
+* removes a starting / or \\
+* removes any _
+* removes any -
+* replaces any / or \\ with _ 
+* prepends a - and ends with a -
+* 
+* examples :
+* 1 : /test/example/
+* -test_example-
+* 2 : test/example_abc
+* -test_exampleabc
+* 3 : -test-/xyz_abc
+* -test_xyzabc-
+*/
 export function GetNormalizedZipFilename(filename){
     let fullParsedName = filename;
     // remove the initial / or \\ if existing
@@ -496,9 +507,10 @@ export function GetNormalizedZipFilename(filename){
     else if (fullParsedName.startsWith("\\")){
         fullParsedName = fullParsedName.substring(2);
     }
-     fullParsedName = fullParsedName.replaceAll("/", "-");
-    fullParsedName = fullParsedName.replaceAll("\\", "-");
-    fullParsedName = fullParsedName.replaceAll("-", "_");
+    fullParsedName = fullParsedName.replaceAll("_", "");
+    fullParsedName = fullParsedName.replaceAll("-", "");
+    fullParsedName = fullParsedName.replaceAll("/", "_");
+    fullParsedName = fullParsedName.replaceAll("\\", "_");
     fullParsedName = "-" + fullParsedName + "-";
     
     return fullParsedName;
