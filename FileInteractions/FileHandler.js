@@ -125,13 +125,14 @@ export async function RemoveFile_WithErrors(file_path){
         }
 
         if (DoesPathExist && isPathFile){
-            const response_msg = await fsp.unlink(file_path).catch((err) => LogErrorMessage(err.message,err));
-            // todo : fsp.unlink doesnt resolve with anything even on success, fix it to not reject on non-failure
-            console.log(response_msg);
-            console.log(response_msg);
-            console.log(response_msg);
-            console.log(response_msg);
-            if (!response_msg){
+            // fsp.unlink wont return anything on success so we need to check via variable
+            let success = true;
+            await fsp.unlink(file_path).catch((err) => {
+                success = false;
+                LogErrorMessage(err.message,err);
+            });
+            
+            if (!success){
                 return reject("Failed to unlink file");
             }
         }
