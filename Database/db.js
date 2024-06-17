@@ -209,23 +209,20 @@ export async function ValidateAuthToken(userid, token, ip){
         }
         
         // Check if cached data includes the token
-        if (CachedAuthTokens.has(token)){
+        if (CachedAuthTokens.has(token)) {
             // Check if cached value matches the one of db
-            if ((CachedAuthTokens.get(token) === data[0].token)){
+            if ((CachedAuthTokens.get(token) === data[0].token)) {
                 // matches so we can assume that db value didnt change since its not expired from above query
                 return resolve(true);
-            }
-            else{
+            } else {
                 // doesnt match so remove from cached tokens
                 CachedAuthTokens.delete(token);
             }
         }
-        else{
-            // cached values dosnt include token yet so cache it
-            CachedAuthTokens.set(token, data[0].token);
-        }
-            
+        
+        // if data matches against db cache the token and resolve true
         if (await DoesDataMatchHash(token, data[0].token)){
+            CachedAuthTokens.set(token, data[0].token);
             return resolve(true);
         }
         return resolve(false);
