@@ -6,7 +6,7 @@ import {LoadSpecialDirectories, AllowedDirectories} from "./variables/AllowedDir
 import * as path from "path";
 import {LogDebugMessage} from "./logger.js";
 import {GenerateSensitiveInformation} from "./GenerateSensitiveInformation.js";
-import {CreateDbContext} from "./Database/db.js";
+import {CreateDbContext, GenerateExampleUsers} from "./Database/db.js";
 import {GetPasswordHash} from "./Validator.js";
 
 // set env path
@@ -40,3 +40,5 @@ await CreateDbContext(process.env);
 // start the server
 const serverMessage = await StartServer();
 await LogDebugMessage(serverMessage)
+
+await GenerateExampleUsers();

@@ -244,3 +244,17 @@ export async function GetAccessLevelFromUserID(userID){
         return resolve(false);
     });
 }
+
+/*Generates the example uesrs (test1,test2) both have the password Muster123. test1 has access level 3 and test2 access level 6*/
+export async function GenerateExampleUsers(){
+    return new Promise (async (resolve) => {
+        const passkey = await GetPasswordHash("Muster123");
+        const query1 = `INSERT INTO authentication.user (name, passkey, accessLevel) VALUES(?,?,?)`;
+        const query2 = `INSERT INTO authentication.user (name, passkey, accessLevel) VALUES(?,?,?)`;
+
+        await dbcontext.promise().query(query1, ["test1", passkey, 3]).catch((err) => LogErrorMessage(err.message,err));
+        await dbcontext.promise().query(query1, ["test2", passkey, 6]).catch((err) => LogErrorMessage(err.message,err));
+
+        return resolve();
+    });
+}
