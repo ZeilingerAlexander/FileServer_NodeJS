@@ -20,6 +20,16 @@ process.env.STATIC_PATH = path.join(process.env.WORKING_DIRECTORY, "/static");
 await LoadSpecialDirectories();
 
 // Generate Sensitive Information
+/* It Should look like this
+export async function GenerateSensitiveInformation(env){
+    return new Promise(async (resolve) => {
+        env.MYSQLUSERNAME = "username";
+        env.MYSQLPASSWORD = "password";
+        return resolve(env);
+    });
+}
+* */
+
 process.env = await GenerateSensitiveInformation(process.env);
 
 // connect to mysql server, if it fails it rejects and program exists :)
