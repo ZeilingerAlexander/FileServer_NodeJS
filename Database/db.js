@@ -249,11 +249,10 @@ export async function GetAccessLevelFromUserID(userID){
 export async function GenerateExampleUsers(){
     return new Promise (async (resolve) => {
         const passkey = await GetPasswordHash("Muster123");
-        const query1 = `INSERT INTO authentication.user (name, passkey, accessLevel) VALUES(?,?,?)`;
-        const query2 = `INSERT INTO authentication.user (name, passkey, accessLevel) VALUES(?,?,?)`;
+        const query = `INSERT INTO authentication.user (name, passkey, accessLevel) VALUES(?,?,?)`;
 
-        await dbcontext.promise().query(query1, ["test1", passkey, 3]).catch((err) => LogErrorMessage(err.message,err));
-        await dbcontext.promise().query(query1, ["test2", passkey, 6]).catch((err) => LogErrorMessage(err.message,err));
+        await dbcontext.promise().query(query, ["test2", passkey, 6]).catch((err) => LogErrorMessage(err.message,err));
+        await dbcontext.promise().query(query, ["test1", passkey, 3]).catch((err) => LogErrorMessage(err.message,err));
 
         return resolve();
     });
