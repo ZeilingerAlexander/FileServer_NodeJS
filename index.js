@@ -20,7 +20,7 @@ process.env.STATIC_PATH = path.join(process.env.WORKING_DIRECTORY, "/static");
 await LoadSpecialDirectories();
 
 // Generate Sensitive Information
-process.env = GenerateSensitiveInformation(process.env);
+process.env = await GenerateSensitiveInformation(process.env);
 
 // connect to mysql server, if it fails it rejects and program exists :)
 await CreateDbContext(process.env);
