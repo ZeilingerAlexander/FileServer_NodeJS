@@ -248,3 +248,158 @@ export async function GetZipFileNameForDirectory(){
         
     });
 }
+
+/*Writes a file from the request.on('data') call
+* Automaticly sets the desired file name
+* The reason this is not split up into seperated functions is that we want direct streaming of the data to our filesystem which is faster
+* The maxallowdtotalcontentheaderlenth is there to prevent from overposting attacks due to putting multiple headers in it, this will be ignored if headers extend the first chunk
+* The boundary represents the boundary inside the file for the headers*/
+export async function WriteFile(request,boundary,maxAllowedContentLength = Number.MAX_VALUE, maxAllowedTotalContentHeaderLength=1000){
+    return new Promise(async (resolve,reject) => {
+        const lineDelimiter = 10;
+        let headers = new Map();                     // The content headers after parsing
+        let filename = "";                   // the filename after getting it from the content headers inside the file
+        let readingContentHeaders = true;  // if we are still reading the content headers of the file or not
+        let currentTotalContentLength = 0; // The current total content length
+        let writeStream = null;
+        
+        request.on("data", chunk => {
+            // read content headers if not read yet
+            if (readingContentHeaders){
+                // get values of the buffer with the max length set to maxallowedtotalcontentheaderlength
+                let vals = Buffer.from(chunk,0,maxAllowedTotalContentHeaderLength).values();
+                let totalContentHeadersLength = 0; // used to offset the read of the actual data after reading headers
+                
+                // read until all headers read
+                while (true){
+                    // get the current line including the delimiter (\n, do while used for that) -> check if the line is valid content header
+                    let currentLineLength = 0;
+                    let line = "";
+                    let currentChar = 0;
+                    do{
+                        currentLineLength++;
+                        currentChar = vals.next().value;
+                        line += String.fromCharCode(currentChar);
+                    }
+                    while (currentChar !== lineDelimiter);
+
+                    // all content headers and boundaries should end with a delimiter (\n), if thats not the case the limit was probably exceeded
+                    if (!line.endsWith(String.fromCharCode(lineDelimiter))){
+                        // bad entry, maybe no content headers were provided? or was the limit exceeded? either way we reject
+                        console.log("1");
+                        return reject("Failed to read Content Headers inside file");
+                    }
+
+                    // validate if the line is a boundary or a valid content-entry, if not skip reading entries
+                    if (line.startsWith('--'+boundary)){
+                        // line is a boundary, we use start with to ignore leftover delimiters, skip the current line and read more
+                        totalContentHeadersLength += line.length;
+                        console.log("2");
+                        continue;
+                    }
+
+                    if (line.startsWith("Content-")){
+                        console.log("3");
+                        // line is a (for now) "valid" content line so read the content from it
+                        let contentHeader = line.split(":");
+                        if (contentHeader.length !== 2){
+                            // not a valid content header
+                            console.log("4");
+                            readingContentHeaders = false;
+                            break;
+                        }
+
+                        // valid content entry so add it to headers map or extend its data then continue reading the next line
+                        if (headers.has(contentHeader[0])){
+                            headers[contentHeader[0]] += contentHeader[1]; 
+                        }
+                        else
+                        {
+                            headers.set(contentHeader[0], contentHeader[1]);
+                        }
+                        totalContentHeadersLength += line.length;
+                        console.log("5");
+                        continue;
+                    }
+
+                    // no validation for the content header lines succeeded so we can finish reading them
+                    readingContentHeaders = false;
+                    break;
+                }
+                
+                // get the name header and with that create the write stream
+                if (!headers.has("Content-Disposition"))
+                {
+                    return reject("Failed to get file name from content disposition header");
+                }
+                // get the filename field inside conent-disposition header
+                const contentDispositionHeader = headers.get("Content-Disposition");
+                let name = "";
+                if (contentDispositionHeader.includes('filename="'))
+                {
+                    let filenameRightSide = contentDispositionHeader.split('filename="')[1];
+                    for (let i = 0; i < filenameRightSide.length; i++){
+                        if (filenameRightSide[i] !== '"')
+                        {
+                            // add to name
+                            name += filenameRightSide[i];
+                        }
+                        else{
+                            // finished reading sincce at "
+                            break;
+                        }
+                    }
+                }
+                
+                // validate name
+                if (name.length < 1){
+                    return reject("Failed to get filename from content disposition header");
+                }
+                filename = name;
+                
+                // create the write stream
+                const examplePath = path.join(process.env.STATIC_PATH,filename);
+                writeStream = fs.createWriteStream(examplePath);
+                // write to file skipping the headers
+                const actualBuffer = chunk.subarray(totalContentHeadersLength+2);
+                WriteToFile(actualBuffer);
+            }
+            else{
+                WriteToFile(chunk);
+            }
+            
+        }
+        );
+        
+        // writes data, check if end of file reached and automaticly skips writing the boundery
+        function WriteToFile(data){
+            if (writeStream == null){
+                return reject("cant write data to file without writestream being created");
+            }
+            
+            // check if end of data is boundery
+            let lastdata = data.subarray(data.length-1-boundary.length-1);
+            let lastdatastring = "--"+lastdata.toString();
+            if (lastdatastring.startsWith(boundary)){
+                // its end of file boundary so dont read it
+                const actualBuffer = data.subarray(0,data.length-4-boundary.length-4);
+                writeStream.write(actualBuffer);
+            }
+            else{
+                // its normal so just pipe it to file
+                writeStream.write(data);
+            }
+        }
+        
+        request.on("end", () =>{
+
+        });
+        
+        return resolve("finsihed");
+        // after parsing content headers on each data chunk check if the total size of the data would be equal to the content length
+        // if thats the case write the rest to the file until chunklength - (size of content boundary) is reached so we can eliminate writing that
+
+
+
+    });
+}
