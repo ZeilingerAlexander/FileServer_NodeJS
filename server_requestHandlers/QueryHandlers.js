@@ -9,6 +9,7 @@ import {HandleGetPublicResource} from "./GETEndpoints/GetPublicResource.js";
 import {HandlePostCreateZippedDirectory} from "./POSTEndpoints/POSTCreateZippedDirectory.js";
 import {HandleGetZippedFileStructure} from "./GETEndpoints/GetZippedFileStructure.js";
 import {HandleRetrieveZippedFile} from "./GETEndpoints/GetRetrieveZippedFile.js";
+import {HandlePostUploadFile} from "./POSTEndpoints/POSTUploadFile.js";
 
 /*The Allowed Query Url entry points, example : /GET/ /POST/, ...*/
 const ValidQueryUrlEntryPoints = [
@@ -25,7 +26,8 @@ const QueryEndpoints = {
     GetPublicResource : HandleGetPublicResource,
     PostCreateZippedDirectory : HandlePostCreateZippedDirectory,
     GetZippedFileStructure : HandleGetZippedFileStructure,
-    RetrieveZippedFile : HandleRetrieveZippedFile
+    RetrieveZippedFile : HandleRetrieveZippedFile,
+    UploadFile : HandlePostUploadFile
 }
 
 /*Handles a Query endpoint defined under QueryEndpoints, returns 404 if not found*/
