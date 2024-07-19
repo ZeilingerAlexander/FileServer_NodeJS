@@ -430,6 +430,60 @@ export async function GetDirectorySize(dir_path){
     });
 }
 
+/*Parses the provided string as multiple key value pairs split by a given splitter and then split into key/value by a provided splitter
+if Ignore White spaces = true it will ignore white spaces (default)
+returns a map
+(all examples with broderKeyValueParSplitter=";" and individualKeyValuePairSplitter="=")
+* example : value = "key=value;key2=value2 -> {key : value, key2 : value2}
+* example2 (with bad entries) value = "key=value=badvalue;key2=value2" -> ignores key and returns { key2 : value2}
+* example3 (with duplicates) value = "key=value;key=value2" -> ignores the second accurance and returns { key : value }
+never rejects*/
+export async function ParseStringKeyValuePairs(/*string*/value,/*string*/broaderKeyValuePairSplitter, /*string*/individualKeyValuePairSplitter, ignoreWhiteSpaces=true)
+{
+    return new Promise(async (resolve) => {
+        if (ignoreWhiteSpaces){
+            value = value.replaceAll(" ", "");
+        }
+
+        let returnvalue = new Map();
+        const broadKvps = value.split(broaderKeyValuePairSplitter);
+        for (let broadKvpKey in broadKvps) {
+            let broadKvp = broadKvps[broadKvpKey];
+            let splittedBroadKvp = broadKvp.split(individualKeyValuePairSplitter);
+            if (splittedBroadKvp.length !== 2){
+                // skip
+                continue;
+            }
+            if (returnvalue.has(splittedBroadKvp[0])){
+                // skip
+                continue;
+            }
+
+            returnvalue.set(splittedBroadKvp[0], splittedBroadKvp[1]);
+        }
+        return resolve(/*Map*/returnvalue);
+    });
+}
+
+/*Gets a specific split header entry from the provided headers, null if not exist
+* example : headers : {x : "y=b;a=c"} calling with headerName = x and headerEntryName = y returns b
+* never rejects*/
+export async function GetSpecificSplitHeaderEntryFromHeaders
+(/*http.IncomingMessage.headers*/headers,/*string*/headerName, /*string*/headerEntryName, /*string*/broderKvPSplitter=';', /*string*/individualKvPSplitter='='){
+    return new Promise(async (resolve) => {
+        const headerEntries = headers[headerName];
+        if (headerEntries === undefined || headerEntries === null){
+            return resolve(null);
+        }
+        const /*Map*/splittedHeaderEntries = await ParseStringKeyValuePairs(headerEntries,broderKvPSplitter,individualKvPSplitter);
+        if (!splittedHeaderEntries.has(headerEntryName)){
+            return resolve(null);
+        }
+        return resolve(splittedHeaderEntries.get(headerEntryName));
+    });
+    
+}
+
 /*Gets all the file paths inside a directory including sub-directories, rejects on read error or bad data*/
 export async function GetAllFilePathsInDirectory(dirPath, arr){
     return new Promise (async (resolve,reject) => {
@@ -515,6 +569,10 @@ export function GetNormalizedZipFilename(filename){
 /*Gets the filename with a "not ready" marker added to it*/
 export function GetFilenameWithMarker(filename){
     return filename+process.env.TEMPFILEMARKEREXTENTION;
+}
+
+export function GetRequestHeaders(){
+    
 }
 
 /*Reverses the GetNormalizedZipFilename Process as much as possible and gets the previous filename

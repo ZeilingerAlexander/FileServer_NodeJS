@@ -28,3 +28,27 @@
 ### add user page to frontend to change user password
 ### add account locked field to user aut table that rejects all login and auth attempts if true
 ### add limiting in backend to wrong password attempts (remaining wrong attempts) that gets reset on correct login, if bad login -1 it and if 0 lock account
+
+# actual backend
+go through all bytes
+read headers for the part
+wait until new headers or end reached
+pipe the buffer between to a write function with filename (this should handle access control so pass some kind of access level and path to write to)
+-> this function should return if the file is ok to be written if so append the file as written
+-> if something fails the function should return what failed and why (for example file exists)
+then return everything that worked and everything that didnt
+
+while not at buffer end
+{
+read byte
+check if byte could be boundary
+true : 
+{
+if current line is a boundary go to the next line
+read the headers byte by byte and store them for the current file until the delimiter is reached
+}
+false 
+{
+write byte to current file
+}
+}
