@@ -2,7 +2,7 @@
 
 import {
     CheckIFPathExists,
-    GetAllFilePathsInDirectory,
+    GetAllFilePathsInDirectory, GetFilenameFromMultipartFormdataLine,
     GetSpecificSplitHeaderEntryFromHeaders,
     IsPathFile,
     ParseStringKeyValuePairs
@@ -255,45 +255,151 @@ export async function GetZipFileNameForDirectory(){
     });
 }
 
-/*Writes a file for the provided request*/
-export async function WriteFile(req){
+/*Writes the files for the provided request*/
+export async function WriteFiles(req){
     return new Promise(async (resolve,reject) => {
         const boundary = await GetSpecificSplitHeaderEntryFromHeaders(req.headers,"content-type","boundary");
+        const boundary_start = "--" + boundary;
+        const boundary_end = boundary_start + "--";
+        const carriageReturnKeycode = 13; // /r
+        const lineFeedKeyCode = 10; // /n
         if (boundary == null){
             return reject("Failed to get boundary from headers");
         }
-        // set the modified boundary values for ease of use
-        const boundary_start = "--" + boundary;
-        const boundary_end = "--" + boundary + "--";
-        const existingWriteStream = new Map();
-        let currentFileNameForWriting = "";
-        
-        req.on("data", chunk => {
-            console.log("received data chunk");
+
+        // 0 = reading boundary start; 1 = reading boundary end; 2 = reading boundary content; 3 = reading data
+        let state = 0;
+
+        let currentFileName = null;
+        let currentFileSize = 0;
+        let currentHeaderLine = ""; // when reading header line buffer line into here for later parsing
+        let currentHeaderLineFullyRead = false; // if the current header line has been fully read
+        let currentHeaderLineGotCarriageReturnKey = false; // when reading header if carriage return was recieved on the last input
+        req.on("data", async chunk => {
             const /*Iterator*/chunkValues = chunk.values();
-            const lineDelimiterNumber = 10;
-            let chunkIndexToStartReadFrom = 0;
-            let chunkIndexToEndReadAt = chunk.length;
-            let currentLine = "";
-            let currentCharNumber = 0;
-            let isBoundaryStart = false;
-            let isBoundaryEnd = false;
-            
-            // check if current line is boundary start or boundary end
-            // since boundary end also stars with boundary start we can check for that 
-            do{
-                // check if boundary start or possible boundary end
-                if (currentLine.length === boundary_start.length){
-                    
+            let pos = 0; // current position in the chunk values
+            let data = chunkValues.next();
+            let currentBoundaryPosition = 0; // current position when reading boundary
+
+            while (!data.done){
+                switch (state){
+                    // reading boundary start
+                    case 0 :
+                        for (let i = currentBoundaryPosition; i < boundary_start.length; i++){
+                            if (boundary_start[i].charCodeAt(0) === data.value){
+                                // valid character of boundary start
+                                currentBoundaryPosition++;
+                                data = chunkValues.next();
+                                if (data.done){
+                                    // if data is done before finishing skip to next chunk
+                                    break;
+                                }
+                            }
+                            else{
+                                // abort reading boundary start and treat it as part of the file
+                                pos += currentBoundaryPosition;
+                                currentBoundaryPosition = 0;
+
+                                // attempt to continue reading file, this is a backup if file name already set
+                                state = 3;
+                                break;
+                            }
+                        }
+                        // validate if full boundary read
+                        if (currentBoundaryPosition === boundary_start.length){
+                            // full boundary read so switch to reading boundary content and skip current boundary
+                            state = 2;
+                            pos += currentBoundaryPosition;
+                            currentBoundaryPosition = 0;
+
+                            // skip 2 more characters for carriage return and line feed key
+                            chunkValues.next();
+                            data = chunkValues.next();
+                            pos += 2;
+
+                        }
+                        break;
+                    // reading boundary end
+                    case 1 :
+
+                        break;
+                    // reading boundary data
+                    case 2 :
+                        // read header line into memory until max length is reached
+                        while (currentFileName === null && currentHeaderLine.length < process.env.UPLOAD_MAXMULTIPARTHEADERLENGTH){
+                            // check to ensure we are reading valid data
+                            if (data.done){
+                                currentHeaderLineGotCarriageReturnKey = false;
+                                break;
+                            }
+                            if (currentHeaderLineGotCarriageReturnKey){
+                                currentHeaderLineGotCarriageReturnKey = false;
+                                // last character was carriage return so check if current one is line feed
+                                if (data.value === lineFeedKeyCode){
+                                    // end of header line
+                                    currentHeaderLineFullyRead = true;
+                                    // increment since we wont get to the end where we get the next char
+                                    pos++;
+                                    data = chunkValues.next();
+                                    break;
+                                }
+                                else{
+                                    // not end of header line so append the last character (carriage return) and the current
+                                    currentHeaderLine += String.fromCharCode(carriageReturnKeycode) + String.fromCharCode(data.value);
+                                }
+                            }
+                            else if (data.value === carriageReturnKeycode){
+                                currentHeaderLineGotCarriageReturnKey = true;
+                            }
+                            else{
+                                // normal key so append it to the current header line
+                                currentHeaderLine += String.fromCharCode(data.value);
+                                currentHeaderLineGotCarriageReturnKey = false;
+                            }
+                            // go to next value
+                            data = chunkValues.next();
+                            pos++;
+                        }
+                        /* check if current header line empty and current line fully read indicating that the characters int the line were
+                        carriage return + line feed since they arent appended to the line*/
+                        if (currentHeaderLine.length === 0 && currentHeaderLineFullyRead){
+                            // switch to reading file data
+                            state = 3;
+                            break;
+                        }
+                        // check if header line fully read if so parse it if not already parsed
+                        if (currentHeaderLineFullyRead){
+                            // attempt to get the filename from the current line if not already read
+                            if (!currentFileName === null){
+                                let filename = GetFilenameFromMultipartFormdataLine(currentHeaderLine);
+                                if (filename){
+                                    // got filename
+                                    currentFileName = filename;
+                                }
+                            }
+                            // discard the current line and set it to not fully read
+                            currentHeaderLine = "";
+                            currentHeaderLineFullyRead = false;
+                        }
+                        else if (currentHeaderLine.length >= process.env.UPLOAD_MAXMULTIPARTHEADERLENGTH)
+                        {
+                            // its not fully read but exceeded length so reject the request
+                            return reject("Failed to parse header line");
+                        }
+
+                        break;
+                    // reading data
+                    case 3 :
+
+                        break;
                 }
-                else{
-                    // read the next char
-                    currentCharNumber = chunkValues.next().value;
-                    currentLine += String.fromCharCode(currentCharNumber);
-                }
-            }while (currentCharNumber !== lineDelimiterNumber && (boundary_start.startsWith(currentLine)))
-            
-            
+            }
+            // if still reading data after finishing the loop write the data from current file
+            if (state === 2 && currentFileName !== null){
+
+            }
+
+            console.log("received data chunk");
         });
         
         req.on("close", () => {
@@ -303,11 +409,6 @@ export async function WriteFile(req){
         req.on("error", (err) =>{
             console.error(err);
         });
-        
-        // pipe here for example
-        // const examplePath = path.join(process.env.STATIC_PATH,"ex.pdf");
-        // req.pipe(fs.createWriteStream(examplePath));
-        
     });
 }
 

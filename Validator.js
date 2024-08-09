@@ -590,3 +590,18 @@ export function GetFilenameFromZipParsedFilename(filename){
     const extension = filename.includes(".") ? filename.substring(filename.lastIndexOf("."),filename.length) : "";
     return filename.substring(filename.indexOf("-")+1,filename.indexOf("-",1)) + extension;
 }
+
+/*Gets the filename from a multipart formdata line. returns the filename. returns null if not found*/
+export function GetFilenameFromMultipartFormdataLine(/*string*/line){
+        let headerSplitParts = line.split(`filename="`);
+        if (headerSplitParts.length < 2){
+            LogErrorMessage("failed to split at filename=");
+            return null;
+        }
+        let filenmaeSplitParts = headerSplitParts[1].split('"');
+        if(filenmaeSplitParts.length < 1){
+            LogErrorMessage("failed to split after filename=");
+            return null;
+        }
+        return filenmaeSplitParts[0];
+}
